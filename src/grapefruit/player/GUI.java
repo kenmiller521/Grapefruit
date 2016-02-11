@@ -18,7 +18,7 @@ import javax.swing.JPanel;
 public class GUI extends JFrame{
     
     JPanel panel;
-    JButton play, pause,stop;
+    JButton play, pause,stop,back,forward;
     public GUI(){
         super("My GUI");
         this.setSize(700, 500);
@@ -31,9 +31,15 @@ public class GUI extends JFrame{
         pause.addActionListener(new pauseButtonListener());
         stop = new JButton("Stop");
         stop.addActionListener(new stopButtonListener());
+        back = new JButton("Back");
+        back.addActionListener(new backButtonListener());
+        forward = new JButton("Forward");
+        forward.addActionListener(new forwardButtonListener());
         panel.add(play);
         panel.add(pause);
         panel.add(stop);
+        panel.add(back);
+        panel.add(forward);
         
         
         
@@ -46,8 +52,7 @@ public class GUI extends JFrame{
         @Override
         public void actionPerformed(ActionEvent e) {
             System.out.println("You pressed " + e.getActionCommand());
-        }
-        
+        }        
     }
     class stopButtonListener implements ActionListener
     {
@@ -55,8 +60,7 @@ public class GUI extends JFrame{
         @Override
         public void actionPerformed(ActionEvent e) {
             System.out.println("You pressed " + e.getActionCommand());
-        }
-        
+        }        
     }
     class pauseButtonListener implements ActionListener
     {
@@ -64,7 +68,21 @@ public class GUI extends JFrame{
         @Override
         public void actionPerformed(ActionEvent e) {
             System.out.println("You pressed " + e.getActionCommand());
-        }
-        
+        }        
+    }
+    class backButtonListener implements ActionListener
+    {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("You pressed " + e.getActionCommand());
+        }        
+    }
+    class forwardButtonListener implements ActionListener
+    {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("You pressed " + e.getActionCommand());
+        }        
     }
 }
