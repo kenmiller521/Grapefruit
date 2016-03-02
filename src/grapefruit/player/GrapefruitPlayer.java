@@ -41,7 +41,6 @@ public class GrapefruitPlayer {
        {
            System.out.println("Song found");
            //Get the file with associated path
-           //Get the file with associated path
            Mp3File mp3 = new Mp3File(path); 
            //Get tag info
            ID3v2 id3v2Tag = mp3.getId3v2Tag();
@@ -61,8 +60,8 @@ public class GrapefruitPlayer {
            System.out.println("Genre: " + genre);
            System.out.println(mp3.getFilename());
            //Start the playback
-           MP3Player playback = new MP3Player();
-           playback.testPlay(path);
+           //MP3Player playback = new MP3Player(path);
+           //playback.testPlay(path);
        }
        else
        {
