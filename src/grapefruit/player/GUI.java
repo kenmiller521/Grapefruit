@@ -10,7 +10,11 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-
+import java.lang.Runnable;
+import grapefruit.player.MP3Player;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  *
  * @author ken_m
@@ -19,8 +23,15 @@ public class GUI extends JFrame{
     
     JPanel panel;
     JButton play, pause,stop,back,forward;
-    public GUI(){
+    MP3Player player;
+    private Thread t;
+    private boolean paused;
+    public GUI()
+    {
         super("My GUI");
+        paused = false;
+        player = new MP3Player();
+        
         this.setSize(700, 500);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         panel = new JPanel();
@@ -50,8 +61,19 @@ public class GUI extends JFrame{
     {
 
         @Override
-        public void actionPerformed(ActionEvent e) {
-            System.out.println("You pressed " + e.getActionCommand());
+        public void actionPerformed(ActionEvent e) 
+        {
+            //TEMP SPOT TO TEST BUTTON FUNCTIONALITIES
+            player.setPath("C:/Users/USER/Desktop/SONGNAME.mp3");
+            if(player.isRunning())
+            {
+                System.out.println("ALREADY ACTIVE");
+            }
+            else
+            {    
+                t = new Thread(player, "test");
+                t.start();
+            }                       
         }        
     }
     class stopButtonListener implements ActionListener
@@ -60,6 +82,14 @@ public class GUI extends JFrame{
         @Override
         public void actionPerformed(ActionEvent e) {
             System.out.println("You pressed " + e.getActionCommand());
+            if(player.isActive() == true)
+            {
+                try {
+                    player.stopPlay();
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }        
     }
     class pauseButtonListener implements ActionListener
@@ -67,7 +97,17 @@ public class GUI extends JFrame{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("You pressed " + e.getActionCommand());
+            if(player.isActive() == true)
+            {
+                System.out.println("PAUSE PLAY");
+                player.userPressedPause();
+                //player.pausePlay();
+            }
+            else
+            {
+                System.out.println("RESUME PLAY");
+                player.userPressedPlay();
+            }
         }        
     }
     class backButtonListener implements ActionListener
