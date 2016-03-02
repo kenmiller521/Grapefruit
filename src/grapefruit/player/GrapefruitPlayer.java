@@ -11,6 +11,7 @@ import com.mpatric.mp3agic.UnsupportedTagException;
 import java.io.File;
 import javazoom.jlgui.basicplayer.*;
 import java.io.IOException;
+import java.sql.SQLException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
@@ -25,7 +26,7 @@ public class GrapefruitPlayer {
      * @param args the command line arguments
      */
     static GUI gui;
-    public static void main(String[] args) throws IOException, UnsupportedTagException, InvalidDataException, BasicPlayerException, UnsupportedAudioFileException {
+    public static void main(String[] args) throws IOException, UnsupportedTagException, InvalidDataException, BasicPlayerException, UnsupportedAudioFileException, ClassNotFoundException, SQLException {
        gui = new GUI();
        
        //Code below is for testing only. Once we figure everything out we will
@@ -35,6 +36,9 @@ public class GrapefruitPlayer {
        //Get the path of the song, this is an example if the mp3 file
        //is on the desktop.
        String path = "C:/Users/USER/Desktop/SONGNAME.mp3";
+       //Connect to SQL Database
+       SQLDatabase db = new SQLDatabase();
+       db.connect();
        //See if the path actually works
        File file = new File(path);
        if(file.canRead())
