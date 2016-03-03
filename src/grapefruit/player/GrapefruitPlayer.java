@@ -27,7 +27,7 @@ public class GrapefruitPlayer {
      */
     static GUI gui;
     public static void main(String[] args) throws IOException, UnsupportedTagException, InvalidDataException, BasicPlayerException, UnsupportedAudioFileException, ClassNotFoundException, SQLException {
-       gui = new GUI();
+       
        
        //Code below is for testing only. Once we figure everything out we will
        //clean up the main function by putting things in classes and functions
@@ -63,6 +63,7 @@ public class GrapefruitPlayer {
            System.out.println("Comment: " + comment);
            System.out.println("Genre: " + genre);
            System.out.println(mp3.getFilename());
+           gui = new GUI();
            //Start the playback
            //MP3Player playback = new MP3Player(path);
            //playback.testPlay(path);

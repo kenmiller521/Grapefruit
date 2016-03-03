@@ -5,6 +5,10 @@
  */
 package grapefruit.player;
 
+import com.mpatric.mp3agic.ID3v2;
+import com.mpatric.mp3agic.InvalidDataException;
+import com.mpatric.mp3agic.Mp3File;
+import com.mpatric.mp3agic.UnsupportedTagException;
 import java.io.File;
 import java.io.IOException;
 import javax.sound.sampled.AudioFormat;
@@ -22,24 +26,40 @@ public class MP3Player implements Runnable
 {
     private SourceDataLine line;
     private AudioInputStream din;
-    private String path;
-    
+    private String path;    
     private boolean temp;
     private byte[] data;
     private int nBytesRead,nBytesWritten;
     private SourceDataLine res;
     private AudioInputStream in;
     private boolean paused = false;
-    private Object lock;
+    private Object lock;    
+    private Mp3File mp3;
+    private ID3v2 id3v2Tag;
+    private String title;
+    private String album;
+    private String artist;
+    private String year;
+    private String comment;
+    private int genre;
     
-    
-    public MP3Player()
+    public MP3Player() throws IOException, UnsupportedTagException, InvalidDataException
     {
         lock = new Object();
+        
     }
-    public MP3Player(String filePath)
+    public MP3Player(String filePath) throws IOException, UnsupportedTagException, InvalidDataException
     {
+        lock = new Object();
         path = filePath;
+        mp3 = new Mp3File(filePath);
+        id3v2Tag = mp3.getId3v2Tag();
+        title = id3v2Tag.getTitle();
+        album = id3v2Tag.getAlbum();
+        artist = id3v2Tag.getArtist();
+        year = id3v2Tag.getYear();
+        comment = id3v2Tag.getComment();
+        genre = id3v2Tag.getGenre();
     }
     public void testPlay(String filename)
     {
@@ -203,9 +223,18 @@ public class MP3Player implements Runnable
             lock.notifyAll();
         }    
     }
-    public void setPath(String filePath)
+    public void setPath(String filePath) throws IOException, UnsupportedTagException, InvalidDataException
     {
+        
         path = filePath;
+        mp3 = new Mp3File(path);
+        id3v2Tag = mp3.getId3v2Tag();
+        title = id3v2Tag.getTitle();
+        album = id3v2Tag.getAlbum();
+        artist = id3v2Tag.getArtist();
+        year = id3v2Tag.getYear();
+        comment = id3v2Tag.getComment();
+        genre = id3v2Tag.getGenre();
     }
     public String getPath()
     {
@@ -224,5 +253,29 @@ public class MP3Player implements Runnable
         }
         else
             testPlay(path);
+    }
+    public String getTitle()
+    {
+        return title;
+    }
+    public String getAlbum()
+    {
+        return album;
+    }
+    public String getArtist()
+    {
+        return artist;
+    }
+    public String getYear()
+    {
+        return year;
+    }
+    public String getComment()
+    {
+        return comment;
+    }
+    public int getGenre()
+    {
+        return genre;
     }
 }

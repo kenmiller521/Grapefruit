@@ -5,6 +5,8 @@
  */
 package grapefruit.player;
 
+import com.mpatric.mp3agic.InvalidDataException;
+import com.mpatric.mp3agic.UnsupportedTagException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
@@ -12,6 +14,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.lang.Runnable;
 import grapefruit.player.MP3Player;
+import java.awt.BorderLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -20,14 +23,9 @@ import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.KeyStroke;
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 /**
  *
  * @author ken_m
@@ -39,22 +37,24 @@ public class GUI extends JFrame{
     MP3Player player;
     private Thread t;
     private boolean paused;
+    JTable dataTable;
+    JScrollPane sp;
     JMenuBar menuBar;
     JMenu menu, submenu;
     JMenuItem menuItem;
     JRadioButtonMenuItem rbMenuItem;
     JCheckBoxMenuItem cbMenuItem;
-    public GUI()
+    public GUI() throws IOException, UnsupportedTagException, InvalidDataException
     {
         super("My GUI");
         paused = false;
         player = new MP3Player();
-        
+        player.setPath("C:/Users/USER/Desktop/SONGNAME.mp3");
         this.setSize(700, 500);
         this.setTitle("Grapefruit Player");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         playerButtonsPanel = new JPanel();
-        this.add(playerButtonsPanel);
+        this.add(playerButtonsPanel,BorderLayout.SOUTH);
         play = new JButton("Play");
         play.addActionListener(new playButtonListener());
         pause = new JButton("Pause");
@@ -65,6 +65,26 @@ public class GUI extends JFrame{
         back.addActionListener(new backButtonListener());
         forward = new JButton("Forward");
         forward.addActionListener(new forwardButtonListener());
+        //JList list = new JList();
+        
+        String [] columnNames = {"Title", "Album","Artist","Year","Comment"};
+       /* Object[][] data = {
+            {player.getTitle(),player.getAlbum(),player.getArtist(),player.getYear(),player.getComment()},
+            {"TEST","test","test","test","test"},
+            {"TEST","test","test","test","test"},
+            {"TEST","test","test","test","test"}};*/
+        Object[][] data = {
+            {"test","test","test","test","test"},
+            {"test","test","test","test","test"},
+            {"test","test","test","test","test"}};
+        dataTable = new JTable(data,columnNames);
+        sp = new JScrollPane(dataTable);
+        dataTable.setFillsViewportHeight(true);
+        dataTable.getSelectionModel().addListSelectionListener(new rowSelector());
+        //sp = new JScrollPane();
+        this.add(sp);
+        //this.add(sp);
+        //this.add(list);
         playerButtonsPanel.add(play);
         playerButtonsPanel.add(pause);
         playerButtonsPanel.add(stop);
@@ -87,7 +107,7 @@ public class GUI extends JFrame{
         public void actionPerformed(ActionEvent e) 
         {
             //TEMP SPOT TO TEST BUTTON FUNCTIONALITIES
-            player.setPath("C:/Users/USER/Desktop/SONGNAME.mp3");
+            
             if(player.isRunning())
             {
                 System.out.println("ALREADY ACTIVE");
@@ -309,7 +329,50 @@ public class GUI extends JFrame{
                 "Basic Functions");
         menuBar.add(menu);
         //ADD MENU ITEMS BELOW
+        menuItem = new JMenuItem("Play",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_1, ActionEvent.ALT_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Play the song");
+        menuItem.addActionListener(new playButtonListener());
         
+        menu.add(menuItem);
+        
+        menuItem = new JMenuItem("Pause",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_1, ActionEvent.ALT_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new pauseButtonListener());
+        menu.add(menuItem);
+        menuItem = new JMenuItem("Stop",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_1, ActionEvent.ALT_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new stopButtonListener());
+        menu.add(menuItem);
+        
+        menu.addSeparator();
+        
+        menuItem = new JMenuItem("Skip to next",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_1, ActionEvent.ALT_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new MenuDemo());
+        menu.add(menuItem);
+        menuItem = new JMenuItem("Skip to previous",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_1, ActionEvent.ALT_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new MenuDemo());
         //Add a song menu item
         menuItem = new JMenuItem("Open a song",
                                  KeyEvent.VK_O);
@@ -359,9 +422,27 @@ public class GUI extends JFrame{
     public class exitMenuItem implements ActionListener{
 
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(ActionEvent e) 
+        {
+            
             System.out.println("EXITING");
-            System.exit(0);
+            System.exit(0);            
         }        
+    }
+    public class rowSelector implements ListSelectionListener{
+
+        @Override
+        public void valueChanged(ListSelectionEvent e) 
+        {
+            //GET TAG INFORMATION TO PLAY SONG
+            if(!e.getValueIsAdjusting())
+            {
+                if (dataTable.getSelectedRow() > -1) 
+                {
+                // print first column value from selected row
+                    System.out.println(dataTable.getValueAt(dataTable.getSelectedRow(), 0).toString());
+                }
+            }
+        }
     }
 }
