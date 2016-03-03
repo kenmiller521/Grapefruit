@@ -53,7 +53,7 @@ public class MP3Player implements Runnable
         lock = new Object();
         path = filePath;
         mp3 = new Mp3File(filePath);
-        id3v2Tag = mp3.getId3v2Tag();
+        id3v2Tag = mp3.getId3v2Tag(); 
         title = id3v2Tag.getTitle();
         album = id3v2Tag.getAlbum();
         artist = id3v2Tag.getArtist();
@@ -277,5 +277,29 @@ public class MP3Player implements Runnable
     public int getGenre()
     {
         return genre;
+    }
+    public void setTitle(String t)
+    {
+        title = t;
+    }
+    public void setAlbum(String a)
+    {
+        album = a;
+    }
+    public void setArtist(String a)
+    {
+        artist = a;
+    }
+    public void setYear(String y)
+    {
+        year = y;
+    }
+    public void setGenre(int i)
+    {
+        genre = i;
+    }
+    public void setComment(String c)
+    {
+        comment = c;
     }
 }
