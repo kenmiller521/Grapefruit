@@ -7,6 +7,8 @@ package grapefruit.player;
 
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
+import static grapefruit.player.GrapefruitPlayer.db;
+import static grapefruit.player.GrapefruitPlayer.player;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
@@ -26,6 +28,8 @@ import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import java.lang.Object;
+import java.sql.SQLException;
 /**
  *
  * @author ken_m
@@ -34,7 +38,7 @@ public class GUI extends JFrame{
     JFrame frame;
     JPanel playerButtonsPanel;
     JButton play, pause,stop,back,forward;
-    MP3Player player;
+    //MP3Player player;
     private Thread t;
     private boolean paused;
     JTable dataTable;
@@ -44,12 +48,10 @@ public class GUI extends JFrame{
     JMenuItem menuItem;
     JRadioButtonMenuItem rbMenuItem;
     JCheckBoxMenuItem cbMenuItem;
-    public GUI() throws IOException, UnsupportedTagException, InvalidDataException
+    public GUI() throws IOException, UnsupportedTagException, InvalidDataException, SQLException
     {
         super("My GUI");
         paused = false;
-        player = new MP3Player();
-        player.setPath("C:/Users/USER/Desktop/SONGNAME.mp3");
         this.setSize(700, 500);
         this.setTitle("Grapefruit Player");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -67,17 +69,21 @@ public class GUI extends JFrame{
         forward.addActionListener(new forwardButtonListener());
         //JList list = new JList();
         
-        String [] columnNames = {"Title", "Album","Artist","Year","Comment"};
+        String [] columnNames = {"Title", "Album","Artist","Year","Genre","Comment"};
        /* Object[][] data = {
             {player.getTitle(),player.getAlbum(),player.getArtist(),player.getYear(),player.getComment()},
             {"TEST","test","test","test","test"},
             {"TEST","test","test","test","test"},
             {"TEST","test","test","test","test"}};*/
-        Object[][] data = {
+        db.findNumbItems();
+        db.findNumbCols();
+        Object[][] data = new Object[db.getNumbItems()][db.getNumbCols()];
+        //db.populateTable(data);
+        /*Object[][] data = {
             {"test","test","test","test","test"},
             {"test","test","test","test","test"},
-            {"test","test","test","test","test"}};
-        dataTable = new JTable(data,columnNames);
+            {"test","test","test","test","test"}};*/
+        dataTable = new JTable(db.populateTable(data),columnNames);
         sp = new JScrollPane(dataTable);
         dataTable.setFillsViewportHeight(true);
         dataTable.getSelectionModel().addListSelectionListener(new rowSelector());

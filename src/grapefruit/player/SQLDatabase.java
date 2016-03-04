@@ -5,6 +5,7 @@
  */
 package grapefruit.player;
 
+import static grapefruit.player.GrapefruitPlayer.player;
 import java.sql.*;
 import java.util.Scanner;
 
@@ -23,6 +24,9 @@ public class SQLDatabase {
     private Connection conn;
     private Statement stmt;
     private ResultSet rs;
+    private ResultSetMetaData rsmd;
+    private int numbItems;
+    private int numbCols;
     static final String displayFormat="%-5s%-15s%-15s%-15s\n";
     // JDBC driver name and database URL
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
@@ -50,7 +54,7 @@ public class SQLDatabase {
             System.out.println("Connecting to database...");
             conn = DriverManager.getConnection(DB_URL);
             createTable();
-            dropTable();
+            //dropTable();
         }
         catch (SQLException se) 
         {
@@ -116,7 +120,7 @@ public class SQLDatabase {
             while (rs.next()) 
             {
                 //System.out.println(rs.getString(3));
-                DBExists = "AUTHORS".equals(rs.getString(3));
+                DBExists = "songs".equals(rs.getString(3));
             }
             return DBExists;
     }
@@ -126,9 +130,9 @@ public class SQLDatabase {
         {
             if(!dbExists())
             {
-                System.out.println("CREATING TEMP TABLE AUTHORS");
+                System.out.println("CREATING TABLE songs");
                 stmt = conn.createStatement();
-                sql = "CREATE TABLE authors (au_id VARCHAR(20), au_fname VARCHAR(20), au_lname VARCHAR (20), phone VARCHAR(9))";
+                sql = "CREATE TABLE songs (title VARCHAR(20), album VARCHAR(20), artist VARCHAR (20), pubdate VARCHAR(20), genre integer, comment VARCHAR(50))";
                 stmt.execute(sql);
                 stmt.close();
             }
@@ -140,6 +144,7 @@ public class SQLDatabase {
         catch(SQLException e)
         {
             System.out.println("TABLE ALREADY EXISTS");
+            //e.printStackTrace();
         }
         
     }
@@ -149,12 +154,12 @@ public class SQLDatabase {
         {
             System.out.println("DROPPING TEMP TABLE AUTHORS");
             stmt = conn.createStatement();
-            sql = "DROP TABLE authors";
+            sql = "DROP TABLE songs";
             stmt.executeUpdate(sql);
 
             if(!dbExists())
             {
-                System.out.println("TABLE DOES NOT EXIST");                       
+                System.out.println("TABLE DOES NOT EXIST");
             }
             else
             {
@@ -166,5 +171,134 @@ public class SQLDatabase {
         {
             e.printStackTrace();
         }
+    }
+    public void addSong() throws SQLException
+    {
+        try
+        {
+            conn = DriverManager.getConnection(DB_URL);
+            stmt = conn.createStatement();
+            //sql = "INSERT INTO songs (TITLE,album,artist,pubdate,genre,comment) VALUES(' + player.getTitle() + "'','" + player.getAlbum()+ "','" +player.getArtist()+ "','" +player.getYear()+ "','" +player.getGenre()+ "','" +player.getComment()+'")");
+            sql = "INSERT INTO songs (title, album, artist, pubdate, genre, comment) VALUES('"+player.getTitle() +"','"+ player.getAlbum()+"','"+player.getArtist()+"','"+player.getYear()+"',"+player.getGenre()+",'"+player.getComment()+"')";
+            System.out.println(sql.toString());
+            //stmt.execute(sql);
+            stmt.executeUpdate(sql);
+            stmt.close();
+        }
+        catch(SQLException e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    public void findNumbItems() throws SQLException
+    {
+        try
+        {
+            conn = DriverManager.getConnection(DB_URL);
+            stmt = conn.createStatement();
+             rs = stmt.executeQuery("SELECT COUNT(*) AS COUNT FROM SONGS");
+            while(rs.next()) {
+               numbItems = rs.getInt("COUNT");
+            }
+
+ //Closing the connection
+            stmt.close();
+            conn.close();
+            /*
+            conn = DriverManager.getConnection(DB_URL);
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT * FROM songs");
+            numbItems = rs.last() ? rs.getRow() : 0;*/
+        }
+        catch(SQLException e)
+        {
+            e.printStackTrace();
+        }        
+    }
+    public void findNumbCols() throws SQLException
+    {
+        try
+        {
+            conn = DriverManager.getConnection(DB_URL);
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("select * from songs");
+            rsmd = rs.getMetaData();
+            numbCols = rsmd.getColumnCount();
+            stmt.close();
+            conn.close();
+        }
+        catch(SQLException e)
+        {
+            e.printStackTrace();
+        }
+    }
+            
+    public int getNumbItems()
+    {
+        return numbItems;
+    }
+    public int getNumbCols()
+    {
+        return numbCols;
+    }
+    public Object[][] populateTable(Object[][] data) throws SQLException
+    {
+        try
+        {
+            findNumbItems();
+            findNumbCols();
+            conn = DriverManager.getConnection(DB_URL);            
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT * FROM songs");
+            rsmd = rs.getMetaData();
+            
+            System.out.println(numbItems);
+            System.out.println(numbCols);
+            /*
+            for(int i = 1; i <= getNumbCols(); i++)
+            {
+                System.out.print(rsmd.getColumnLabel(i)+"\t\t"); 
+            }
+            
+            System.out.println("\n-------------------------------------------------");
+            */
+            while(rs.next())
+            {
+                for(int i = 0; i < numbItems; i++)
+                {
+                    for(int j = 0; j <= numbCols;j++)
+                    {
+                        if(j == 5)
+                        {
+                            data[i][j] = rs.getInt(j+1);
+                        }
+                        else
+                        {
+                            data[i][j] = rs.getString(j+1);
+                        }                        
+                    }
+                }
+                /*
+                String t = rs.getString(1);
+                String al = rs.getString(2);
+                String ar = rs.getString(3);
+                String y = rs.getString(4);
+                int g = rs.getInt(5);
+                String c = rs.getString(6);
+                System.out.println(t + "\t\t" + al + "\t\t" + ar + "\t\t" + y + "\t\t" + g + "\t\t" + c);
+                */
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+            
+            
+        }
+        catch(SQLException e)
+        {
+            e.printStackTrace();
+        }
+        return data;
     }
 }
