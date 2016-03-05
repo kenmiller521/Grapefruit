@@ -14,7 +14,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import java.lang.Runnable;
+import java.lang.String;
 import grapefruit.player.MP3Player;
 import java.awt.BorderLayout;
 import java.awt.event.ItemEvent;
@@ -29,7 +29,9 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.lang.Object;
+import static java.nio.file.Files.delete;
 import java.sql.SQLException;
+import javax.swing.filechooser.FileNameExtensionFilter;
 /**
  *
  * @author ken_m
@@ -48,6 +50,15 @@ public class GUI extends JFrame{
     JMenuItem menuItem;
     JRadioButtonMenuItem rbMenuItem;
     JCheckBoxMenuItem cbMenuItem;
+    private String columnNames[] = {"Title", "Album","Artist","Year","Genre","Comment","File Path"};
+    /**
+     *
+     * @throws IOException
+     * @throws UnsupportedTagException
+     * @throws InvalidDataException
+     * @throws SQLException
+     */
+    @SuppressWarnings("empty-statement")
     public GUI() throws IOException, UnsupportedTagException, InvalidDataException, SQLException
     {
         super("My GUI");
@@ -69,7 +80,7 @@ public class GUI extends JFrame{
         forward.addActionListener(new forwardButtonListener());
         //JList list = new JList();
         
-        String [] columnNames = {"Title", "Album","Artist","Year","Genre","Comment"};
+        
        /* Object[][] data = {
             {player.getTitle(),player.getAlbum(),player.getArtist(),player.getYear(),player.getComment()},
             {"TEST","test","test","test","test"},
@@ -77,13 +88,18 @@ public class GUI extends JFrame{
             {"TEST","test","test","test","test"}};*/
         db.findNumbItems();
         db.findNumbCols();
-        Object[][] data = new Object[db.getNumbItems()][db.getNumbCols()];
+       // Object[][] data = new Object[db.getNumbItems()][db.getNumbCols()];
         //db.populateTable(data);
+        Object data[][] = db.populateTable(db.getNumbItems(),db.getNumbCols());
+        
+        //for(int i =0; i < db.getNumbItems(); i++)
+        //    for(int j = 0; j < db.getNumbCols(); j++)
+//                System.out.println(data[i][j]);
         /*Object[][] data = {
             {"test","test","test","test","test"},
             {"test","test","test","test","test"},
             {"test","test","test","test","test"}};*/
-        dataTable = new JTable(db.populateTable(data),columnNames);
+        dataTable = new JTable(data,columnNames);
         sp = new JScrollPane(dataTable);
         dataTable.setFillsViewportHeight(true);
         dataTable.getSelectionModel().addListSelectionListener(new rowSelector());
@@ -104,6 +120,7 @@ public class GUI extends JFrame{
         
         
         setVisible(true);
+        
     }
     
     class playButtonListener implements ActionListener
@@ -116,7 +133,14 @@ public class GUI extends JFrame{
             
             if(player.isRunning())
             {
-                System.out.println("ALREADY ACTIVE");
+                try 
+                {
+                    player.stopPlay();
+                    t = new Thread(player, "test");
+                    t.start();
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
             else
             {    
@@ -396,7 +420,7 @@ public class GUI extends JFrame{
                 KeyEvent.VK_1, ActionEvent.ALT_MASK));
         menuItem.getAccessibleContext().setAccessibleDescription(
                 "Exits the program");
-        menuItem.addActionListener(new MenuDemo());
+        menuItem.addActionListener(new addSongMenuButton());
         
         menu.add(menuItem);
         //Delete a song menu item
@@ -445,10 +469,58 @@ public class GUI extends JFrame{
             {
                 if (dataTable.getSelectedRow() > -1) 
                 {
-                // print first column value from selected row
-                    System.out.println(dataTable.getValueAt(dataTable.getSelectedRow(), 0).toString());
+                    
+                    try 
+                    {
+                        player.setPath(dataTable.getValueAt(dataTable.getSelectedRow(), 6).toString());
+                        player.printMp3Info();
+                    } catch (IOException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (UnsupportedTagException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (InvalidDataException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         }
+    }
+    public void openFileExplorer() throws IOException, UnsupportedTagException, InvalidDataException, SQLException
+    {
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("MP3 Files","mp3");
+        chooser.setFileFilter(filter);
+        int returnVal = chooser.showOpenDialog(null);
+        if(returnVal == JFileChooser.APPROVE_OPTION) 
+        {
+            System.out.println("You chose to open this file: " +
+            chooser.getSelectedFile().getName());
+            System.out.println("File Path: " + chooser.getSelectedFile().getPath());
+            player.setPath(chooser.getSelectedFile().getPath());
+            System.out.println("PRINTING INFO");
+            player.printMp3Info();
+            db.addSong();
+            //dataTable.setVisible(false);
+            //dataTable.setVisible(true);
+        }
+    }
+        public class addSongMenuButton implements ActionListener
+        {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                openFileExplorer(); 
+            } catch (IOException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (UnsupportedTagException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvalidDataException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+                    
+                }
     }
 }

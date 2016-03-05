@@ -37,12 +37,13 @@ public class GrapefruitPlayer {
        
        //Get the path of the song, this is an example if the mp3 file
        //is on the desktop.
-       String path = "C:/Users/USER/Desktop/SONGNAME.mp3";
+       //String path = "C:/Users/USER/Desktop/samplesongs/SONGNAME.mp3";
        //Connect to SQL Database
        db = new SQLDatabase();
        db.connect();
        player = new MP3Player();
        //See if the path actually works
+       /*
        File file = new File(path);
        if(file.canRead())
        {
@@ -66,7 +67,7 @@ public class GrapefruitPlayer {
            String artist = id3v2Tag.getArtist();
            String year = id3v2Tag.getYear();
            String comment = id3v2Tag.getComment();
-           int genre = id3v2Tag.getGenre();*/
+           int genre = id3v2Tag.getGenre();
            //Print out the information 
            System.out.println("Title: " + player.getTitle() );
            System.out.println("Album: " + player.getAlbum());
@@ -75,19 +76,19 @@ public class GrapefruitPlayer {
            System.out.println("Comment: " + player.getComment());
            System.out.println("Genre: " + player.getGenre());
            System.out.println(mp3.getFilename());
-           gui = new GUI();
+           */
            db.findNumbItems();
-           System.out.println(db.getNumbItems());
            //db.addSong();
-           //Start the playback
-           //MP3Player playback = new MP3Player(path);
-           //playback.testPlay(path);
+           
+           //CALL GUI LAST TO MAKE SURE ALL SONGS ARE IN THE DATABASE BEFORE RENDERING THE PROGRAM
+           gui = new GUI();
+           /*
        }
        else
        {
            System.out.println("Error finding file.");
        }
-       
+       */
        //System.out.println("Length of this mp3 is: " + mp3file.getLengthInSeconds() + " seconds");
        //System.out.println("Bitrate: " + mp3file.getBitrate() + " kbps " + (mp3file.isVbr() ? "(VBR)" : "(CBR)"));
        //System.out.println("Sample rate: " + mp3file.getSampleRate() + " Hz");

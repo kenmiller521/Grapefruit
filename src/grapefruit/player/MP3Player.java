@@ -26,7 +26,7 @@ public class MP3Player implements Runnable
 {
     private SourceDataLine line;
     private AudioInputStream din;
-    private String path;    
+        
     private boolean temp;
     private byte[] data;
     private int nBytesRead,nBytesWritten;
@@ -42,6 +42,8 @@ public class MP3Player implements Runnable
     private String year;
     private String comment;
     private int genre;
+    private String path;
+    
     
     public MP3Player() throws IOException, UnsupportedTagException, InvalidDataException
     {
@@ -60,6 +62,7 @@ public class MP3Player implements Runnable
         year = id3v2Tag.getYear();
         comment = id3v2Tag.getComment();
         genre = id3v2Tag.getGenre();
+        
     }
     public void testPlay(String filename)
     {
@@ -301,5 +304,14 @@ public class MP3Player implements Runnable
     public void setComment(String c)
     {
         comment = c;
+    }
+    public void printMp3Info()
+    {
+        System.out.println("Title: " + getTitle());
+        System.out.println("Album: " + getAlbum());
+        System.out.println("Artist: " + getArtist());
+        System.out.println("Year: " + getYear());
+        System.out.println("Genre: " + getGenre());
+        System.out.println("Comment: " + getComment());
     }
 }

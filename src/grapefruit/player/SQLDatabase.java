@@ -6,8 +6,13 @@
 package grapefruit.player;
 
 import static grapefruit.player.GrapefruitPlayer.player;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.sql.*;
 import java.util.Scanner;
+import java.sql.PreparedStatement;
 
 
 /**
@@ -15,6 +20,7 @@ import java.util.Scanner;
  * @author ken_m
  */
 public class SQLDatabase {
+    private String pathArray[];
     private static String USER;
     private static String PASS;
     private static String DBNAME;
@@ -99,6 +105,13 @@ public class SQLDatabase {
         else
             return input;
     }
+     public static int dispNullInt(int input){
+         if( input == -1)
+             return 0;
+         else
+             return input;
+             
+     }
     public void testConnection() throws SQLException
     {
         try
@@ -132,7 +145,7 @@ public class SQLDatabase {
             {
                 System.out.println("CREATING TABLE songs");
                 stmt = conn.createStatement();
-                sql = "CREATE TABLE songs (title VARCHAR(20), album VARCHAR(20), artist VARCHAR (20), pubdate VARCHAR(20), genre integer, comment VARCHAR(50))";
+                sql = "CREATE TABLE songs (title VARCHAR(40), album VARCHAR(40), artist VARCHAR (40), pubdate VARCHAR(4), genre integer, comment VARCHAR(50),path VARCHAR(200))";
                 stmt.execute(sql);
                 stmt.close();
             }
@@ -172,17 +185,41 @@ public class SQLDatabase {
             e.printStackTrace();
         }
     }
-    public void addSong() throws SQLException
+    public void addSong() throws SQLException, FileNotFoundException
     {
         try
         {
             conn = DriverManager.getConnection(DB_URL);
             stmt = conn.createStatement();
             //sql = "INSERT INTO songs (TITLE,album,artist,pubdate,genre,comment) VALUES(' + player.getTitle() + "'','" + player.getAlbum()+ "','" +player.getArtist()+ "','" +player.getYear()+ "','" +player.getGenre()+ "','" +player.getComment()+'")");
-            sql = "INSERT INTO songs (title, album, artist, pubdate, genre, comment) VALUES('"+player.getTitle() +"','"+ player.getAlbum()+"','"+player.getArtist()+"','"+player.getYear()+"',"+player.getGenre()+",'"+player.getComment()+"')";
+           /* sql = "INSERT INTO songs (title, album, artist, pubdate, genre, comment) VALUES('"+player.getTitle() +"','"+ 
+                    player.getAlbum()+"','"+
+                    player.getArtist()+"','"+
+                    player.getYear()+"',"+
+                    player.getGenre()+",'"+
+                    player.getComment()+",'"+
+                    "yes"+"')";*/
+            sql = "INSERT INTO songs (title, album,artist,pubdate,genre,comment,path) VALUES(?,?,?,?,?,?,?)";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1,player.getTitle());
+            pstmt.setString(2, player.getAlbum());
+            pstmt.setString(3, player.getArtist());
+            pstmt.setString(4, player.getYear());
+            pstmt.setInt(5, player.getGenre());
+            pstmt.setString(6, player.getComment());
+            pstmt.setString(7, player.getPath());
+            pstmt.execute();
             System.out.println(sql.toString());
+            
             //stmt.execute(sql);
-            stmt.executeUpdate(sql);
+            /*
+            InputStream inputStream = new FileInputStream(new File(player.getPath()));
+            sql = "INSERT INTO songs (path) values (?)";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1,sql);
+            pstmt.executeUpdate();
+            */
+            //stmt.executeUpdate(sql);
             stmt.close();
         }
         catch(SQLException e)
@@ -190,7 +227,6 @@ public class SQLDatabase {
             e.printStackTrace();
         }
     }
-    
     public void findNumbItems() throws SQLException
     {
         try
@@ -205,11 +241,6 @@ public class SQLDatabase {
  //Closing the connection
             stmt.close();
             conn.close();
-            /*
-            conn = DriverManager.getConnection(DB_URL);
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery("SELECT * FROM songs");
-            numbItems = rs.last() ? rs.getRow() : 0;*/
         }
         catch(SQLException e)
         {
@@ -242,52 +273,35 @@ public class SQLDatabase {
     {
         return numbCols;
     }
-    public Object[][] populateTable(Object[][] data) throws SQLException
+    public Object[][] populateTable(int rows, int cols) throws SQLException
     {
+        Object[][]temp = new Object[rows][cols];
         try
         {
-            findNumbItems();
-            findNumbCols();
             conn = DriverManager.getConnection(DB_URL);            
             stmt = conn.createStatement();
             rs = stmt.executeQuery("SELECT * FROM songs");
             rsmd = rs.getMetaData();
             
-            System.out.println(numbItems);
-            System.out.println(numbCols);
-            /*
-            for(int i = 1; i <= getNumbCols(); i++)
-            {
-                System.out.print(rsmd.getColumnLabel(i)+"\t\t"); 
-            }
-            
-            System.out.println("\n-------------------------------------------------");
-            */
+            int i = 0;
             while(rs.next())
             {
-                for(int i = 0; i < numbItems; i++)
-                {
-                    for(int j = 0; j <= numbCols;j++)
-                    {
-                        if(j == 5)
-                        {
-                            data[i][j] = rs.getInt(j+1);
-                        }
-                        else
-                        {
-                            data[i][j] = rs.getString(j+1);
-                        }                        
-                    }
-                }
-                /*
-                String t = rs.getString(1);
-                String al = rs.getString(2);
-                String ar = rs.getString(3);
-                String y = rs.getString(4);
-                int g = rs.getInt(5);
-                String c = rs.getString(6);
-                System.out.println(t + "\t\t" + al + "\t\t" + ar + "\t\t" + y + "\t\t" + g + "\t\t" + c);
-                */
+                
+                    String t = rs.getString(1);
+                    String al = rs.getString(2);
+                    String ar = rs.getString(3);
+                    String y = rs.getString(4);
+                    int g = rs.getInt(5);
+                    String c = rs.getString(6);
+                    String p = rs.getString(7);
+                   temp[i][0] = dispNull(t);
+                   temp[i][1] = dispNull(al);
+                   temp[i][2] = dispNull(ar);
+                   temp[i][3] = dispNull(y);
+                   temp[i][4] = dispNullInt(g);
+                   temp[i][5] = dispNull(c);
+                   temp[i][6] = dispNull(p);
+                   i++;              
             }
             rs.close();
             stmt.close();
@@ -299,6 +313,6 @@ public class SQLDatabase {
         {
             e.printStackTrace();
         }
-        return data;
+        return temp;
     }
 }
