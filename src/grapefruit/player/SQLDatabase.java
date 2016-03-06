@@ -5,6 +5,7 @@
  */
 package grapefruit.player;
 
+import static grapefruit.player.GrapefruitPlayer.gui;
 import static grapefruit.player.GrapefruitPlayer.player;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,7 +32,7 @@ public class SQLDatabase {
     private Statement stmt;
     private ResultSet rs;
     private ResultSetMetaData rsmd;
-    private int numbItems;
+    private int numbRows;
     private int numbCols;
     static final String displayFormat="%-5s%-15s%-15s%-15s\n";
     // JDBC driver name and database URL
@@ -220,6 +221,7 @@ public class SQLDatabase {
             pstmt.executeUpdate();
             */
             //stmt.executeUpdate(sql);
+            
             stmt.close();
         }
         catch(SQLException e)
@@ -235,7 +237,7 @@ public class SQLDatabase {
             stmt = conn.createStatement();
              rs = stmt.executeQuery("SELECT COUNT(*) AS COUNT FROM SONGS");
             while(rs.next()) {
-               numbItems = rs.getInt("COUNT");
+               numbRows = rs.getInt("COUNT");
             }
 
  //Closing the connection
@@ -265,9 +267,9 @@ public class SQLDatabase {
         }
     }
             
-    public int getNumbItems()
+    public int getNumbRows()
     {
-        return numbItems;
+        return numbRows;
     }
     public int getNumbCols()
     {

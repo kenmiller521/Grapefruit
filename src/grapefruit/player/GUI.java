@@ -51,6 +51,7 @@ public class GUI extends JFrame{
     JRadioButtonMenuItem rbMenuItem;
     JCheckBoxMenuItem cbMenuItem;
     private String columnNames[] = {"Title", "Album","Artist","Year","Genre","Comment","File Path"};
+    private int currentSongIndex;
     /**
      *
      * @throws IOException
@@ -90,7 +91,7 @@ public class GUI extends JFrame{
         db.findNumbCols();
        // Object[][] data = new Object[db.getNumbItems()][db.getNumbCols()];
         //db.populateTable(data);
-        Object data[][] = db.populateTable(db.getNumbItems(),db.getNumbCols());
+        Object data[][] = db.populateTable(db.getNumbRows(),db.getNumbCols());
         
         //for(int i =0; i < db.getNumbItems(); i++)
         //    for(int j = 0; j < db.getNumbCols(); j++)
@@ -103,7 +104,7 @@ public class GUI extends JFrame{
         sp = new JScrollPane(dataTable);
         dataTable.setFillsViewportHeight(true);
         dataTable.getSelectionModel().addListSelectionListener(new rowSelector());
-        //sp = new JScrollPane();
+        
         this.add(sp);
         //this.add(sp);
         //this.add(list);
@@ -131,22 +132,52 @@ public class GUI extends JFrame{
         {
             //TEMP SPOT TO TEST BUTTON FUNCTIONALITIES
             
+            
             if(player.isRunning())
             {
-                try 
+                if(t.isAlive()) 
                 {
-                    player.stopPlay();
-                    t = new Thread(player, "test");
-                    t.start();
-                } catch (IOException ex) {
-                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    
+                    try {
+                        player.printMp3Info();
+                        player.stopPlay();
+                        player = null;
+                        player = new MP3Player();
+                        player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
+                        //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                        if(t.isAlive())
+                        {                      
+                            t = new Thread(player,"test");
+                            t.start();
+                        }
+                    } catch (IOException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (UnsupportedTagException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (InvalidDataException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                          
                 }
             }
             else
             {    
-                t = new Thread(player, "test");
-                t.start();
-            }                       
+                try {
+                    player.printMp3Info();
+                    //player.stopPlay();
+                    player = null;
+                    player = new MP3Player();
+                    player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());                  
+                    t = new Thread(player,"test");
+                    t.start();
+                } catch (IOException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (UnsupportedTagException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (InvalidDataException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+            }                    
         }        
     }
     class stopButtonListener implements ActionListener
@@ -154,17 +185,20 @@ public class GUI extends JFrame{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("You pressed " + e.getActionCommand());
-            if(player.isActive() == true)
-            {
+            //if(player.isActive() == true)
+            //{
                 try {
                     player.stopPlay();
+                    if(t.isAlive())
+                        System.out.println("STILL ALIVE");
+                    else
+                        System.out.println("NOT ALIVE");
                 } catch (IOException ex) {
-                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    //Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }        
-    }
+    
     class pauseButtonListener implements ActionListener
     {
 
@@ -183,19 +217,134 @@ public class GUI extends JFrame{
             }
         }        
     }
+    
     class backButtonListener implements ActionListener
     {
 
         @Override
-        public void actionPerformed(ActionEvent e) {
-            System.out.println("You pressed " + e.getActionCommand());
+        public void actionPerformed(ActionEvent e) 
+        {
+            System.out.println(dataTable.getRowCount());
+            int maxRows = dataTable.getRowCount();
+            System.out.println(maxRows);
+            System.out.println(dataTable.getSelectedRow());
+            //compare if top, if so then move to bottom, stop current music then play;
+            if(currentSongIndex == 0)
+            {
+                System.out.println("WRAPPING AROUND");
+                try 
+                {
+                    currentSongIndex = dataTable.getRowCount()-1;
+                    
+                    player.printMp3Info();
+                    player.stopPlay();
+                    player = null;
+                    player = new MP3Player();
+                    player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
+                    //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                    if(t.isAlive())
+                    {                      
+                        t = new Thread(player,"test");
+                        t.start();
+                    }
+                    
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (UnsupportedTagException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidDataException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            else
+            {
+                
+                try 
+                {
+                    //simply play previous song
+                    //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                    System.out.println("Current position: " + currentSongIndex);
+                    player.printMp3Info();
+                    player.stopPlay();
+                    player = null;
+                    player = new MP3Player();
+                    player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                    if(t.isAlive())
+                    {                      
+                        t = new Thread(player,"test");
+                        t.start();
+                    }
+                    
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (UnsupportedTagException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidDataException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }        
     }
     class forwardButtonListener implements ActionListener
     {
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("You pressed " + e.getActionCommand());
+            int maxRows = dataTable.getRowCount();
+            System.out.println("Maxrows: " + maxRows);
+            System.out.println("Current Song Index: " + currentSongIndex);
+            if(currentSongIndex == maxRows-1)
+            {
+                System.out.println("WRAPPING AROUND");
+                currentSongIndex = 0;
+                player.printMp3Info();
+                try {
+                    player.stopPlay();
+                    player.printMp3Info();
+                    player.stopPlay();
+                    player = null;
+                    player = new MP3Player();
+                    player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
+                    //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                    if(t.isAlive())
+                    {                      
+                        t = new Thread(player,"test");
+                        t.start();
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (UnsupportedTagException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidDataException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            else
+            {
+                 try 
+                {
+                    //simply play previous song
+                    //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                    System.out.println("Current position: " + currentSongIndex);
+                    player.printMp3Info();
+                    player.stopPlay();
+                    player = null;
+                    player = new MP3Player();
+                    player.setPath(dataTable.getValueAt(currentSongIndex+=1, 6).toString());
+                    if(t.isAlive())
+                    {                      
+                        t = new Thread(player,"test");
+                        t.start();
+                    }
+                    
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (UnsupportedTagException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidDataException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
         }        
     }
     public JMenuBar addMenuBar()
@@ -464,6 +613,8 @@ public class GUI extends JFrame{
         @Override
         public void valueChanged(ListSelectionEvent e) 
         {
+            
+            currentSongIndex = dataTable.getSelectedRow();
             //GET TAG INFORMATION TO PLAY SONG
             if(!e.getValueIsAdjusting())
             {
@@ -499,9 +650,8 @@ public class GUI extends JFrame{
             player.setPath(chooser.getSelectedFile().getPath());
             System.out.println("PRINTING INFO");
             player.printMp3Info();
+            System.out.println("Rows1: " +db.getNumbRows());
             db.addSong();
-            //dataTable.setVisible(false);
-            //dataTable.setVisible(true);
         }
     }
         public class addSongMenuButton implements ActionListener

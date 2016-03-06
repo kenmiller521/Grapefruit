@@ -9,8 +9,12 @@ import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
+import static grapefruit.player.GrapefruitPlayer.gui;
 import java.io.File;
 import java.io.IOException;
+import static java.nio.file.Files.delete;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -26,7 +30,6 @@ public class MP3Player implements Runnable
 {
     private SourceDataLine line;
     private AudioInputStream din;
-        
     private boolean temp;
     private byte[] data;
     private int nBytesRead,nBytesWritten;
@@ -128,6 +131,7 @@ public class MP3Player implements Runnable
 			line.start();
 		}
                 line.write(data, 0, nBytesRead);
+                    
                 }
             }
         }
@@ -201,7 +205,6 @@ public class MP3Player implements Runnable
     }
     public void stopPlay() throws IOException
     {
-        
         if(line.isActive())
         {
             paused = true;
@@ -209,7 +212,7 @@ public class MP3Player implements Runnable
             line.flush();
             line.close();
             din.close();
-            in.close();
+            in.close();            
         }
     }
     
@@ -246,6 +249,7 @@ public class MP3Player implements Runnable
     @Override
     public void run() 
     {
+        
         if(paused == true)
         {
             synchronized(lock) 
@@ -255,7 +259,11 @@ public class MP3Player implements Runnable
             }
         }
         else
+        {
             testPlay(path);
+        }
+        
+            
     }
     public String getTitle()
     {
