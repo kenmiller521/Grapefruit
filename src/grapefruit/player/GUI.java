@@ -16,6 +16,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.lang.String;
 import grapefruit.player.MP3Player;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -52,6 +54,9 @@ public class GUI extends JFrame{
     JCheckBoxMenuItem cbMenuItem;
     private String columnNames[] = {"Title", "Album","Artist","Year","Genre","Comment","File Path"};
     private int currentSongIndex;
+    DefaultTableModel model = new DefaultTableModel();
+    private JMenuItem menuItemAdd,menuItemDelete, menuItemClose;
+    private JPopupMenu popupMenu;
     /**
      *
      * @throws IOException
@@ -80,7 +85,19 @@ public class GUI extends JFrame{
         forward = new JButton("Forward");
         forward.addActionListener(new forwardButtonListener());
         //JList list = new JList();
-        
+                JPopupMenu popupMenu = new JPopupMenu();
+       
+        JMenuItem menuItemAdd = new JMenuItem("Add New Song");
+        JMenuItem menuItemDelete = new JMenuItem("Delete Song");
+        JMenuItem menuItemClose = new JMenuItem("Cancel");
+       
+        menuItemAdd.addActionListener(new MenuTableListener());
+        menuItemDelete.addActionListener(new MenuTableListener());
+        menuItemClose.addActionListener(new MenuTableListener());
+       
+        popupMenu.add(menuItemAdd);
+        popupMenu.add(menuItemDelete);
+        popupMenu.add(menuItemClose);
         
        /* Object[][] data = {
             {player.getTitle(),player.getAlbum(),player.getArtist(),player.getYear(),player.getComment()},
@@ -100,10 +117,16 @@ public class GUI extends JFrame{
             {"test","test","test","test","test"},
             {"test","test","test","test","test"},
             {"test","test","test","test","test"}};*/
-        dataTable = new JTable(data,columnNames);
+                model = new DefaultTableModel(data, columnNames);
+       // dataTable = new JTable(data,columnNames);
+       dataTable = new JTable(model);
+    //   dataTable.addMouseListener(new TableMouseListener(dataTable));
+       dataTable.setComponentPopupMenu(popupMenu);
+        //dataTable = new JTable(data,columnNames);
         sp = new JScrollPane(dataTable);
         dataTable.setFillsViewportHeight(true);
         dataTable.getSelectionModel().addListSelectionListener(new rowSelector());
+        dataTable.setModel(model);
         
         this.add(sp);
         //this.add(sp);
@@ -123,7 +146,51 @@ public class GUI extends JFrame{
         setVisible(true);
         
     }
+       class MenuTableListener implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent e){
+                 JMenuItem menu = (JMenuItem)e.getSource();
+        if(dataTable.getSelectedRow() > -1){
     
+              System.out.println("Selected: " + e.getActionCommand());
+           if (e.getActionCommand() == "Add New Song"){
+            try {
+               
+                openFileExplorer(); 
+               
+            } catch (IOException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (UnsupportedTagException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvalidDataException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.out.println("Add song selected");
+        } else if (e.getActionCommand()=="Delete Song") {
+            int selectedRow = dataTable.getSelectedRow();
+             try {
+                 String s = dataTable.getValueAt(dataTable.getSelectedRow(), 0).toString();
+                 System.out.println(s);
+                           db.deleteSong(s);
+               
+            } catch (IOException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            final int c = dataTable.getSelectedRow();
+            model.removeRow(c);
+            System.out.println("Delete song selected");
+      } else if (e.getActionCommand() =="Cancel") {
+          System.out.println("Close is selected");
+        }
+        }
+        }
+        
+        
+    }
     class playButtonListener implements ActionListener
     {
 
@@ -652,6 +719,7 @@ public class GUI extends JFrame{
             player.printMp3Info();
             System.out.println("Rows1: " +db.getNumbRows());
             db.addSong();
+            model.addRow(new String[0]);
         }
     }
         public class addSongMenuButton implements ActionListener

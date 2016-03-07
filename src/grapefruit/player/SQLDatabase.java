@@ -186,6 +186,25 @@ public class SQLDatabase {
             e.printStackTrace();
         }
     }
+      public void deleteSong(String title) throws SQLException, FileNotFoundException
+    {
+        try
+        {
+            conn = DriverManager.getConnection(DB_URL);
+            stmt = conn.createStatement();
+            sql = "DELETE FROM songs WHERE Title=?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, title);
+            int deleteCount = pstmt.executeUpdate();
+            stmt.close();
+            System.out.println("Deletion successful");
+            
+        }
+        catch(SQLException e)
+        {
+            e.printStackTrace();
+        }
+    }
     public void addSong() throws SQLException, FileNotFoundException
     {
         try
