@@ -18,9 +18,15 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.datatransfer.DataFlavor;
+import static java.awt.datatransfer.DataFlavor.javaFileListFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DragSource;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,6 +34,8 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.sql.SQLException;
+import javax.activation.ActivationDataFlavor;
+import javax.activation.DataHandler;
 import javax.swing.filechooser.FileNameExtensionFilter;
 /**
  *
@@ -118,6 +126,9 @@ public class GUI extends JFrame{
         dataTable = new JTable(model);
     //   dataTable.addMouseListener(new TableMouseListener(dataTable));
         dataTable.setComponentPopupMenu(popupMenu);
+        dataTable.setDragEnabled(true);
+        dataTable.setDropMode(DropMode.INSERT_ROWS);
+        dataTable.setTransferHandler(new TableRowTransferHandler(dataTable));
         //dataTable = new JTable(data,columnNames);
         sp = new JScrollPane(dataTable);
         dataTable.setFillsViewportHeight(true);
@@ -851,9 +862,55 @@ public class GUI extends JFrame{
                 Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SQLException ex) {
                 Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            }            
+        }
+    }
+    public class TableRowTransferHandler extends TransferHandler 
+    {
+
+        private TableRowTransferHandler(JTable dataTable) 
+        {
+
+        }
+        public boolean canImport(TransferHandler.TransferSupport info) 
+        {
+        // Check for String flavor
+            if (!info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) 
+            {
+                return false;
             }
+            return true;
+        }
+        public boolean importData(TransferHandler.TransferSupport info) 
+        {
+            if (!info.isDrop()) 
+            {
+                return false;
+            }
+            Transferable t = info.getTransferable();
+            File file = null;
+            try
+            {
+                java.util.List<File> l =
+                    (java.util.List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
+                
+                for(File f : l)
+                {
+                    file = f;
+                }
+                player.setPath(file.getPath());
+                player.printMp3Info();
+                db.addSong();
+                addSongToTable();
+                
+            }
+            catch(Exception e)
+            {
+                System.out.println("DOES NOT SUPPORT THAT INPUT");
+                //e.printStackTrace();
+            }    
             
-            
+            return true;
         }
     }
 }
