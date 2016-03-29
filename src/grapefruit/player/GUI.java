@@ -36,7 +36,11 @@ import javax.swing.event.ListSelectionListener;
 import java.sql.SQLException;
 import javax.activation.ActivationDataFlavor;
 import javax.activation.DataHandler;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeSelectionModel;
 /**
  *
  * @author ken_m
@@ -61,6 +65,8 @@ public class GUI extends JFrame{
     private JMenuItem menuItemAdd,menuItemDelete, menuItemClose;
     private JPopupMenu popupMenu;
     private JFileChooser chooser;
+    private JTree tree;
+    private JScrollPane treeView;
     /**
      *
      * @throws IOException
@@ -113,7 +119,6 @@ public class GUI extends JFrame{
        // Object[][] data = new Object[db.getNumbItems()][db.getNumbCols()];
         //db.populateTable(data);
         Object data[][] = db.populateTable(db.getNumbRows(),db.getNumbCols());
-        
         //for(int i =0; i < db.getNumbItems(); i++)
         //    for(int j = 0; j < db.getNumbCols(); j++)
 //                System.out.println(data[i][j]);
@@ -148,7 +153,15 @@ public class GUI extends JFrame{
         //Call the function to create a menu bar and add to the frame
         this.setJMenuBar(addMenuBar());
         
+        DefaultMutableTreeNode top = new DefaultMutableTreeNode("Grapefruit");
+        tree = new JTree(top);
+        createNodes(top);
+        treeView = new JScrollPane(tree);
         
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        tree.addTreeSelectionListener(new treeListener());
+        
+        this.add(treeView, BorderLayout.WEST);
         
         setVisible(true);
         
@@ -912,5 +925,45 @@ public class GUI extends JFrame{
             
             return true;
         }
+    }
+    private void createNodes(DefaultMutableTreeNode top)
+    {
+        DefaultMutableTreeNode library = null;
+        DefaultMutableTreeNode playlists = null;
+        DefaultMutableTreeNode playlistNode = null;
+        
+        library = new DefaultMutableTreeNode("Library");
+        top.add(library);
+        playlists = new DefaultMutableTreeNode("Playlists");
+        playlistNode = new DefaultMutableTreeNode("PLAYLIST 1");
+        playlists.add(playlistNode);
+        playlistNode = new DefaultMutableTreeNode("PLAYLIST 2");
+        playlists.add(playlistNode);
+        playlistNode = new DefaultMutableTreeNode("PLAYLIST 3");
+        playlists.add(playlistNode);
+        top.add(playlists);
+    }
+    
+    class treeListener implements TreeSelectionListener
+    {
+
+        @Override
+        public void valueChanged(TreeSelectionEvent e) 
+        {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
+        
+            if(node == null)
+            return;
+        
+            Object nodeInfo = node.getUserObject();
+            if(node.isLeaf())
+            {
+                System.out.println("You clicked " + node.toString());
+            }
+            else
+            {
+                System.out.println("You clicked " + node.toString());
+            }
+        }        
     }
 }
