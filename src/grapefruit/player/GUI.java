@@ -36,6 +36,8 @@ import javax.swing.event.ListSelectionListener;
 import java.sql.SQLException;
 import javax.activation.ActivationDataFlavor;
 import javax.activation.DataHandler;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -67,6 +69,12 @@ public class GUI extends JFrame{
     private JFileChooser chooser;
     private JTree tree;
     private JScrollPane treeView;
+    
+    static final int FPS_MIN = 0;
+    static final int FPS_MAX = 60;
+    static final int FPS_INIT = 15;
+    private int volumeLevel;
+    private JSlider volumeSlider;
     /**
      *
      * @throws IOException
@@ -143,11 +151,20 @@ public class GUI extends JFrame{
         this.add(sp);
         //this.add(sp);
         //this.add(list);
+        volumeSlider = new JSlider(JSlider.HORIZONTAL,
+                                      FPS_MIN, FPS_MAX, FPS_INIT);
+        volumeSlider.addChangeListener(new volumeSliderListener());
+        volumeSlider.setValue((int) (FPS_MAX/1.5));
+        //volumeSlider.setMajorTickSpacing(10);
+        //volumeSlider.setMinorTickSpacing(1);
+        //volumeSlider.setPaintTicks(true);
+        //volumeSlider.setPaintLabels(true);
         playerButtonsPanel.add(play);
         playerButtonsPanel.add(pause);
         playerButtonsPanel.add(stop);
         playerButtonsPanel.add(back);
         playerButtonsPanel.add(forward);  
+        playerButtonsPanel.add(volumeSlider);
         
         
         //Call the function to create a menu bar and add to the frame
@@ -166,6 +183,8 @@ public class GUI extends JFrame{
         setVisible(true);
         
     }
+    
+    
        class MenuTableListener implements ActionListener{
         @Override
         public void actionPerformed(ActionEvent e){
@@ -235,6 +254,7 @@ public class GUI extends JFrame{
                         {                                     
                             t = new Thread(player,"test");
                             t.start();
+                            player.setVolume(volumeLevel);
                         }
                     } 
                     catch (IOException ex) 
@@ -263,6 +283,7 @@ public class GUI extends JFrame{
                     player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());                  
                     t = new Thread(player,"test");
                     t.start();
+                    player.setVolume(volumeLevel);
                 } 
                 catch (IOException ex) 
                 {
@@ -349,6 +370,7 @@ public class GUI extends JFrame{
                     {                      
                         t = new Thread(player,"test");
                         t.start();
+                        player.setVolume(volumeLevel);
                     }
                     
                 } catch (IOException ex) {
@@ -375,6 +397,7 @@ public class GUI extends JFrame{
                     {                      
                         t = new Thread(player,"test");
                         t.start();
+                        player.setVolume(volumeLevel);
                     }                    
                 } catch (IOException ex) {
                     Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -410,6 +433,7 @@ public class GUI extends JFrame{
                     {                      
                         t = new Thread(player,"test");
                         t.start();
+                        player.setVolume(volumeLevel);
                     }
                 } catch (IOException ex) {
                     Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -433,6 +457,7 @@ public class GUI extends JFrame{
                     {                      
                         t = new Thread(player,"test");
                         t.start();
+                        player.setVolume(volumeLevel);
                     }
                     
                 } catch (IOException ex) {
@@ -823,6 +848,7 @@ public class GUI extends JFrame{
                     player.setPath(chooser.getSelectedFile().getPath());                     
                     t = new Thread(player,"test");
                     t.start();
+                    player.setVolume(volumeLevel);
                 }
                 else
                 {
@@ -965,5 +991,19 @@ public class GUI extends JFrame{
                 System.out.println("You clicked " + node.toString());
             }
         }        
+    }
+    class volumeSliderListener implements ChangeListener
+    {
+
+        @Override
+        public void stateChanged(ChangeEvent e) 
+        {
+            JSlider source = (JSlider)e.getSource();
+            if(!source.getValueIsAdjusting())
+            {
+                volumeLevel = (int)source.getValue();
+                player.setVolume(volumeLevel);
+            }
+        }
     }
 }

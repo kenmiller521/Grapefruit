@@ -18,7 +18,9 @@ import java.util.logging.Logger;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
@@ -46,6 +48,8 @@ public class MP3Player implements Runnable
     private String comment;
     private int genre;
     private String path;
+    private int gain;
+    private FloatControl volumeController;
     
     
     public MP3Player() throws IOException, UnsupportedTagException, InvalidDataException
@@ -97,6 +101,7 @@ public class MP3Player implements Runnable
     {
       data = new byte[4096];
       line = getLine(targetFormat); 
+      volumeController = (FloatControl)line.getControl(FloatControl.Type.MASTER_GAIN);
       if (line != null)
       {
         // Start
@@ -131,6 +136,7 @@ public class MP3Player implements Runnable
 			line.start();
 		}
                 line.write(data, 0, nBytesRead);
+                volumeController.setValue((float) gain);
                     
                 }
             }
@@ -321,5 +327,15 @@ public class MP3Player implements Runnable
         System.out.println("Year: " + getYear());
         System.out.println("Genre: " + getGenre());
         System.out.println("Comment: " + getComment());
+    }
+    public void setVolume(int g)
+    {
+        gain = g-60;
+        if(gain == -60)
+            gain = -80;
+    }
+    public int getVolume()
+    {
+        return gain;
     }
 }
