@@ -8,9 +8,13 @@ import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import javazoom.jlgui.basicplayer.*;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -22,6 +26,7 @@ public class GrapefruitPlayer {
     public static MP3Player player;
     public static SQLDatabase db;
     public static GUI gui;
+    
     
 
     /**
@@ -39,6 +44,16 @@ public class GrapefruitPlayer {
        //is on the desktop.
        //String path = "C:/Users/USER/Desktop/samplesongs/SONGNAME.mp3";
        //Connect to SQL Database
+	    //File file = new File("playlistnames.txt");
+            if (new File("playlistnames.txt").exists() == false)
+            {
+                //file.createNewFile();
+                System.out.println("File is created!");
+            }
+            else
+            {
+                System.out.println("File already exists.");
+            }
        db = new SQLDatabase();
        db.connect();
        player = new MP3Player();
@@ -77,7 +92,7 @@ public class GrapefruitPlayer {
            System.out.println("Genre: " + player.getGenre());
            System.out.println(mp3.getFilename());
            */
-           db.findNumbItems();
+           //db.findNumbItems();
            //db.addSong();
            
            //CALL GUI LAST TO MAKE SURE ALL SONGS ARE IN THE DATABASE BEFORE RENDERING THE PROGRAM
