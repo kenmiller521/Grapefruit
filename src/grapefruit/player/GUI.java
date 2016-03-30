@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
+import java.awt.FlowLayout;
 import java.awt.datatransfer.DataFlavor;
 import static java.awt.datatransfer.DataFlavor.javaFileListFlavor;
 import java.awt.datatransfer.Transferable;
@@ -26,7 +27,10 @@ import java.awt.dnd.DragSource;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,6 +46,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
 /**
  *
@@ -75,6 +80,17 @@ public class GUI extends JFrame{
     static final int FPS_INIT = 15;
     private int volumeLevel;
     private JSlider volumeSlider;
+    private String playlistName;
+    private JTextField createPlaylistTextField;
+    private JFrame createPlaylistframe;
+    private DefaultMutableTreeNode playlistNode;
+    private DefaultMutableTreeNode playlists;
+    private FileReader fileReader;
+    private BufferedReader bufferedReader;
+    private String line; //The line in the text file to be read
+    private DefaultTreeModel treeModel;
+    private DefaultMutableTreeNode top;
+    private JFrame createPlaylistFrame;
     /**
      *
      * @throws IOException
@@ -86,8 +102,10 @@ public class GUI extends JFrame{
     public GUI() throws IOException, UnsupportedTagException, InvalidDataException, SQLException
     {
         super("My GUI");
+        fileReader = new FileReader("playlistnames.txt");
+        bufferedReader = new BufferedReader(fileReader);
         paused = false;
-        this.setSize(700, 500);
+        this.setSize(800, 500);
         this.setTitle("Grapefruit Player");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         playerButtonsPanel = new JPanel();
@@ -122,11 +140,11 @@ public class GUI extends JFrame{
             {"TEST","test","test","test","test"},
             {"TEST","test","test","test","test"},
             {"TEST","test","test","test","test"}};*/
-        db.findNumbItems();
-        db.findNumbCols();
+        db.findNumbItems("songs");
+        db.findNumbCols("songs");
        // Object[][] data = new Object[db.getNumbItems()][db.getNumbCols()];
         //db.populateTable(data);
-        Object data[][] = db.populateTable(db.getNumbRows(),db.getNumbCols());
+        Object data[][] = db.populateTable("songs", db.getNumbRows(),db.getNumbCols());
         //for(int i =0; i < db.getNumbItems(); i++)
         //    for(int j = 0; j < db.getNumbCols(); j++)
 //                System.out.println(data[i][j]);
@@ -170,65 +188,85 @@ public class GUI extends JFrame{
         //Call the function to create a menu bar and add to the frame
         this.setJMenuBar(addMenuBar());
         
-        DefaultMutableTreeNode top = new DefaultMutableTreeNode("Grapefruit");
+        top = new DefaultMutableTreeNode("Grapefruit");
         tree = new JTree(top);
+        treeModel = (DefaultTreeModel)tree.getModel();
         createNodes(top);
         treeView = new JScrollPane(tree);
         
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addTreeSelectionListener(new treeListener());
         
+        
         this.add(treeView, BorderLayout.WEST);
         
         setVisible(true);
         
     }
+      
     
-    
-       class MenuTableListener implements ActionListener{
+    class MenuTableListener implements ActionListener
+    {
         @Override
-        public void actionPerformed(ActionEvent e){
-                 JMenuItem menu = (JMenuItem)e.getSource();
-        if(dataTable.getSelectedRow() > -1){
-    
-              System.out.println("Selected: " + e.getActionCommand());
-           if (e.getActionCommand() == "Add New Song"){
-            try {
-               
-                openFileExplorerAndAddedSong(); 
-               
-            } catch (IOException ex) {
-                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (UnsupportedTagException ex) {
-                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvalidDataException ex) {
-                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException ex) {
-                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        public void actionPerformed(ActionEvent e)
+        {
+            JMenuItem menu = (JMenuItem)e.getSource();
+            if(dataTable.getSelectedRow() > -1)
+            {
+                System.out.println("Selected: " + e.getActionCommand());
+                if (e.getActionCommand() == "Add New Song")
+                {
+                    try 
+                    {
+                        openFileExplorerAndAddedSong(); 
+                        db.addSong(playlistName);
+                        addSongToTable();
+                    } 
+                    catch (IOException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    catch (UnsupportedTagException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } 
+                    catch (InvalidDataException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    catch (SQLException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    System.out.println("Add song selected");
+                } 
+                else if (e.getActionCommand()=="Delete Song") 
+                {
+                    int selectedRow = dataTable.getSelectedRow();
+                    try 
+                    {
+                        String s = dataTable.getValueAt(dataTable.getSelectedRow(), 0).toString();
+                        System.out.println(s);
+                         db.deleteSong(playlistName, s);
+                    } 
+                    catch (IOException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } 
+                    catch (SQLException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    final int c = dataTable.getSelectedRow();
+                    model.removeRow(c);
+                    System.out.println("Delete song selected");
+                } 
+                else if (e.getActionCommand() =="Cancel") 
+                {
+                    System.out.println("Close is selected");
+                }
             }
-            System.out.println("Add song selected");
-        } else if (e.getActionCommand()=="Delete Song") {
-            int selectedRow = dataTable.getSelectedRow();
-             try {
-                 String s = dataTable.getValueAt(dataTable.getSelectedRow(), 0).toString();
-                 System.out.println(s);
-                           db.deleteSong(s);
-               
-            } catch (IOException ex) {
-                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException ex) {
-                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            final int c = dataTable.getSelectedRow();
-            model.removeRow(c);
-            System.out.println("Delete song selected");
-      } else if (e.getActionCommand() =="Cancel") {
-          System.out.println("Close is selected");
-        }
-        }
-        }
-        
-        
+        }       
     }
     class playButtonListener implements ActionListener
     {
@@ -705,6 +743,16 @@ public class GUI extends JFrame{
         
         menu.add(menuItem);
         
+        menu.addSeparator();
+        
+        menuItem = new JMenuItem("Create Playlist", KeyEvent.VK_C);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_2, ActionEvent.ALT_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Creates a playlist");
+         menuItem.addActionListener(new createPlaylistButton());
+         menu.add(menuItem);
+        
         return menuBar;
     }
     public class MenuDemo implements ActionListener,ItemListener{
@@ -799,7 +847,7 @@ public class GUI extends JFrame{
             {
                 if(openFileExplorerAndAddedSong()) 
                 {
-                    db.addSong();
+                    db.addSong(playlistName);
                     addSongToTable();
                 }
                 else
@@ -887,7 +935,7 @@ public class GUI extends JFrame{
                 {
                     String s = dataTable.getValueAt(dataTable.getSelectedRow(), 0).toString();
                     System.out.println(s);
-                    db.deleteSong(s);
+                    db.deleteSong(playlistName, s);
                     final int c = dataTable.getSelectedRow();
                     model.removeRow(c);
                     System.out.println("Delete song selected");
@@ -903,6 +951,62 @@ public class GUI extends JFrame{
                 Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
             }            
         }
+    }
+    public class createPlaylistButton implements ActionListener
+    {
+
+        @Override
+        public void actionPerformed(ActionEvent e) 
+        {
+           //Prompt user for playlist name
+            createPlaylistFrame = new JFrame();
+            JPanel panel = new JPanel();
+            panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+            JLabel createPlaylistLabel = new JLabel("Playlist Name: ");
+            panel.add(createPlaylistLabel);
+            createPlaylistTextField = new JTextField(20);
+            createPlaylistTextField.setEditable(true);
+            panel.add(createPlaylistTextField);
+            
+            JButton doneButton = new JButton("Done");
+            doneButton.addActionListener(new doneButtonCreatePlaylistListener());
+            panel.add(doneButton);
+            
+            
+            
+            createPlaylistFrame.add(panel);
+            createPlaylistFrame.setTitle("Create Playlist");
+            createPlaylistFrame.setSize(350,100);
+            createPlaylistFrame.setResizable(false);
+            createPlaylistFrame.setVisible(true);
+        }
+        
+    }
+    public class doneButtonCreatePlaylistListener implements ActionListener
+    {
+
+        @Override
+        public void actionPerformed(ActionEvent e) 
+        {
+            playlistName = createPlaylistTextField.getText();
+            try {
+                db.createPlaylist(playlistName);
+            } catch (IOException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.out.println(playlistName);     
+            playlistNode = new DefaultMutableTreeNode(playlistName);
+            playlists.add(playlistNode);
+            treeModel.reload(playlists);
+            createPlaylistFrame.dispose();
+            try {
+                createPlaylistTableView(playlistName);
+            } catch (SQLException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }       
     }
     public class TableRowTransferHandler extends TransferHandler 
     {
@@ -939,7 +1043,7 @@ public class GUI extends JFrame{
                 }
                 player.setPath(file.getPath());
                 player.printMp3Info();
-                db.addSong();
+                db.addSong(playlistName);
                 addSongToTable();
                 
             }
@@ -952,22 +1056,23 @@ public class GUI extends JFrame{
             return true;
         }
     }
-    private void createNodes(DefaultMutableTreeNode top)
+    private void createNodes(DefaultMutableTreeNode top) throws IOException
     {
         DefaultMutableTreeNode library = null;
-        DefaultMutableTreeNode playlists = null;
-        DefaultMutableTreeNode playlistNode = null;
+        playlists = null;
+        playlistNode = null;
         
         library = new DefaultMutableTreeNode("Library");
         top.add(library);
         playlists = new DefaultMutableTreeNode("Playlists");
-        playlistNode = new DefaultMutableTreeNode("PLAYLIST 1");
-        playlists.add(playlistNode);
-        playlistNode = new DefaultMutableTreeNode("PLAYLIST 2");
-        playlists.add(playlistNode);
-        playlistNode = new DefaultMutableTreeNode("PLAYLIST 3");
-        playlists.add(playlistNode);
+        while((line = bufferedReader.readLine()) != null)
+        {            
+            playlistNode = new DefaultMutableTreeNode(line);
+            playlists.add(playlistNode);
+        }
         top.add(playlists);
+        
+       
     }
     
     class treeListener implements TreeSelectionListener
@@ -985,10 +1090,22 @@ public class GUI extends JFrame{
             if(node.isLeaf())
             {
                 System.out.println("You clicked " + node.toString());
+                if(node.toString() == "Library")
+                    playlistName = "songs";
+                else
+                    playlistName = node.toString();
+                try {
+                    createPlaylistTableView(playlistName);
+                } catch (SQLException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
             else
             {
                 System.out.println("You clicked " + node.toString());
+                playlistName = node.toString();
             }
         }        
     }
@@ -1005,5 +1122,31 @@ public class GUI extends JFrame{
                 player.setVolume(volumeLevel);
             }
         }
+    }
+    public void createPlaylistTableView(String libName) throws FileNotFoundException, SQLException, IOException
+    {
+        this.remove(dataTable);
+        this.remove(sp);
+        
+        db.findNumbItems(libName);
+        db.findNumbCols(libName);
+        
+        Object data[][] = db.populateTable(libName, db.getNumbRows(),db.getNumbCols());
+        
+        model = new DefaultTableModel(data, columnNames);
+        dataTable = new JTable(model);
+        dataTable.setComponentPopupMenu(popupMenu);
+        dataTable.setDragEnabled(true);
+        dataTable.setDropMode(DropMode.INSERT_ROWS);
+        dataTable.setTransferHandler(new TableRowTransferHandler(dataTable));
+        sp = new JScrollPane(dataTable);
+        dataTable.setFillsViewportHeight(true);
+        dataTable.getSelectionModel().addListSelectionListener(new rowSelector());
+        dataTable.setModel(model);
+        
+        this.add(sp);
+        
+        setVisible(true);
+        
     }
 }

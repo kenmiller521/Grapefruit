@@ -7,9 +7,13 @@ package grapefruit.player;
 
 import static grapefruit.player.GrapefruitPlayer.gui;
 import static grapefruit.player.GrapefruitPlayer.player;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
 import java.util.Scanner;
@@ -38,13 +42,18 @@ public class SQLDatabase {
     // JDBC driver name and database URL
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
     static String DB_URL = "jdbc:derby://localhost:1527/";
+    private String playlistName;
+    private PreparedStatement pstmt;
+    private FileWriter fileWriter;
+    private String line; //The line in the text file to be read
     
-    public SQLDatabase() throws ClassNotFoundException, SQLException
+    public SQLDatabase() throws ClassNotFoundException, SQLException, FileNotFoundException, IOException
     {
         DBExists = false;
         USER = "cecs343";
         PASS = "csulb";
         DBNAME = "songs";
+        
     }
     public void connect() throws ClassNotFoundException, SQLException
     {
@@ -186,13 +195,13 @@ public class SQLDatabase {
             e.printStackTrace();
         }
     }
-      public void deleteSong(String title) throws SQLException, FileNotFoundException
+      public void deleteSong(String libName, String title) throws SQLException, FileNotFoundException
     {
         try
         {
             conn = DriverManager.getConnection(DB_URL);
             stmt = conn.createStatement();
-            sql = "DELETE FROM songs WHERE Title=?";
+            sql = "DELETE FROM "+libName+" WHERE Title=?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, title);
             int deleteCount = pstmt.executeUpdate();
@@ -205,7 +214,7 @@ public class SQLDatabase {
             e.printStackTrace();
         }
     }
-    public void addSong() throws SQLException, FileNotFoundException
+    public void addSong(String libName) throws SQLException, FileNotFoundException
     {
         try
         {
@@ -219,8 +228,8 @@ public class SQLDatabase {
                     player.getGenre()+",'"+
                     player.getComment()+",'"+
                     "yes"+"')";*/
-            sql = "INSERT INTO songs (title, album,artist,pubdate,genre,comment,path) VALUES(?,?,?,?,?,?,?)";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
+            sql = "INSERT INTO "+libName+" (title, album,artist,pubdate,genre,comment,path) VALUES(?,?,?,?,?,?,?)";
+            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1,player.getTitle());
             pstmt.setString(2, player.getAlbum());
             pstmt.setString(3, player.getArtist());
@@ -248,13 +257,13 @@ public class SQLDatabase {
             e.printStackTrace();
         }
     }
-    public void findNumbItems() throws SQLException
+    public void findNumbItems(String libName) throws SQLException
     {
         try
         {
             conn = DriverManager.getConnection(DB_URL);
             stmt = conn.createStatement();
-             rs = stmt.executeQuery("SELECT COUNT(*) AS COUNT FROM SONGS");
+             rs = stmt.executeQuery("SELECT COUNT(*) AS COUNT FROM " + libName);
             while(rs.next()) {
                numbRows = rs.getInt("COUNT");
             }
@@ -268,13 +277,13 @@ public class SQLDatabase {
             e.printStackTrace();
         }        
     }
-    public void findNumbCols() throws SQLException
+    public void findNumbCols(String libName) throws SQLException
     {
         try
         {
             conn = DriverManager.getConnection(DB_URL);
             stmt = conn.createStatement();
-            rs = stmt.executeQuery("select * from songs");
+            rs = stmt.executeQuery("select * from " + libName);
             rsmd = rs.getMetaData();
             numbCols = rsmd.getColumnCount();
             stmt.close();
@@ -294,14 +303,14 @@ public class SQLDatabase {
     {
         return numbCols;
     }
-    public Object[][] populateTable(int rows, int cols) throws SQLException
+    public Object[][] populateTable(String libName, int rows, int cols) throws SQLException
     {
         Object[][]temp = new Object[rows][cols];
         try
         {
             conn = DriverManager.getConnection(DB_URL);            
             stmt = conn.createStatement();
-            rs = stmt.executeQuery("SELECT * FROM songs");
+            rs = stmt.executeQuery("SELECT * FROM " + libName);
             rsmd = rs.getMetaData();
             
             int i = 0;
@@ -335,5 +344,28 @@ public class SQLDatabase {
             e.printStackTrace();
         }
         return temp;
+    }
+    public void createPlaylist(String pName) throws IOException
+    {
+        playlistName = pName;
+        try
+        {
+            System.out.println("CREATING TABLE " + playlistName);
+            conn = DriverManager.getConnection(DB_URL);
+            stmt = conn.createStatement();
+            sql = "CREATE TABLE "+ playlistName + " (title VARCHAR(40), album VARCHAR(40), artist VARCHAR (40), pubdate VARCHAR(4), genre integer, comment VARCHAR(50),path VARCHAR(200))";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.execute();
+            stmt.close();
+            fileWriter = new FileWriter("playlistnames.txt",true);
+            fileWriter.write(playlistName);
+            fileWriter.append(System.lineSeparator());
+            fileWriter.close();
+        }
+        catch(SQLException e)
+        {
+            //System.out.println("TABLE ALREADY EXISTS");
+            e.printStackTrace();
+        }         
     }
 }
