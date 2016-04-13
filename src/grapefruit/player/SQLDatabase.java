@@ -231,7 +231,7 @@ public class SQLDatabase {
                     "yes"+"')";*/
             sql = "INSERT INTO "+libName+" (title, album,artist,pubdate,genre,comment,path) VALUES(?,?,?,?,?,?,?)";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1,player.getTitle());
+            pstmt.setString(1, player.getTitle());
             pstmt.setString(2, player.getAlbum());
             pstmt.setString(3, player.getArtist());
             pstmt.setString(4, player.getYear());
@@ -354,7 +354,7 @@ public class SQLDatabase {
             System.out.println("CREATING TABLE " + playlistName);
             conn = DriverManager.getConnection(DB_URL);
             stmt = conn.createStatement();
-            sql = "CREATE TABLE "+ playlistName + " (title VARCHAR(40), album VARCHAR(40), artist VARCHAR (40), pubdate VARCHAR(4), genre integer, comment VARCHAR(50),path VARCHAR(200))";
+            sql = "CREATE TABLE "+ playlistName + " (title VARCHAR(40), album VARCHAR(40), artist VARCHAR (40), pubdate VARCHAR(4), genre VARCHAR(30), comment VARCHAR(50),path VARCHAR(200))";
             pstmt = conn.prepareStatement(sql);
             pstmt.execute();
             stmt.close();

@@ -69,11 +69,12 @@ public class GUI extends JFrame{
     private int currentSongIndex;
     DefaultTableModel model = new DefaultTableModel();
     private JMenuItem menuItemAdd,menuItemDelete, menuItemClose;
-    private JPopupMenu popupMenu;
+    private JMenu playlistSubmenu;
+    private JPopupMenu popupMenu,playlistPopupMenu;
     private JFileChooser chooser;
     private JTree tree;
     private JScrollPane treeView;
-    
+    private JSplitPane splitPane;
     static final int FPS_MIN = 0;
     static final int FPS_MAX = 60;
     static final int FPS_INIT = 15;
@@ -101,8 +102,7 @@ public class GUI extends JFrame{
     public GUI() throws IOException, UnsupportedTagException, InvalidDataException, SQLException
     {
         super("My GUI");
-        fileReader = new FileReader("playlistnames.txt");
-        bufferedReader = new BufferedReader(fileReader);
+        
         paused = false;
         this.setSize(800, 500);
         this.setTitle("Grapefruit Player");
@@ -133,6 +133,17 @@ public class GUI extends JFrame{
         popupMenu.add(menuItemAdd);
         popupMenu.add(menuItemDelete);
         popupMenu.add(menuItemClose);
+        popupMenu.addSeparator();
+        playlistSubmenu = new JMenu("Add to Playlist");
+        fileReader = new FileReader("playlistnames.txt");
+        bufferedReader = new BufferedReader(fileReader);
+        while((line = bufferedReader.readLine()) != null)
+        {            
+             menuItem = new JMenuItem(line);
+             menuItem.addActionListener(new addSongToPlaylistFromPopupMenu());
+             playlistSubmenu.add(menuItem);
+        }
+        popupMenu.add(playlistSubmenu);
         
        /* Object[][] data = {
             {player.getTitle(),player.getAlbum(),player.getArtist(),player.getYear(),player.getComment()},
@@ -165,7 +176,7 @@ public class GUI extends JFrame{
         dataTable.getSelectionModel().addListSelectionListener(new rowSelector());
         dataTable.setModel(model);
         
-        this.add(sp);
+        //this.add(sp);
         //this.add(sp);
         //this.add(list);
         volumeSlider = new JSlider(JSlider.HORIZONTAL,
@@ -196,14 +207,51 @@ public class GUI extends JFrame{
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addTreeSelectionListener(new treeListener());
         
+        playlistPopupMenu = new JPopupMenu();
+        menuItem = new JMenuItem("Open in New Window");
+        playlistPopupMenu.add(menuItem);
+        menuItem = new JMenuItem("Delete Playlist");
+        playlistPopupMenu.add(menuItem);
+        tree.setComponentPopupMenu(playlistPopupMenu);
+        //treeView.setComponentPopupMenu(playlistPopupMenu);
         
-        this.add(treeView, BorderLayout.WEST);
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                           treeView, sp);
+        splitPane.setDividerLocation(140);
+        this.add(splitPane);
+        //this.add(treeView, BorderLayout.WEST);
         
         setVisible(true);
         
     }
       
+    class addSongToPlaylistFromPopupMenu implements ActionListener
+    {
+
+        @Override
+        public void actionPerformed(ActionEvent e) 
+        {
+            playlistName = e.getActionCommand();
+            player.printMp3Info();
+            try 
+            {
+                db.addSong(playlistName);
+                //addSongToTable();
+            }
+            catch (SQLException ex) 
+            {
+                //Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
+            } 
+            catch (FileNotFoundException ex) 
+            {
+                //Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
+            }
+            
+        }
     
+    }
     class MenuTableListener implements ActionListener
     {
         @Override
@@ -978,6 +1026,7 @@ public class GUI extends JFrame{
             createPlaylistFrame.setSize(350,100);
             createPlaylistFrame.setResizable(false);
             createPlaylistFrame.setVisible(true);
+            createPlaylistFrame.getRootPane().setDefaultButton(doneButton);
         }
         
     }
@@ -993,7 +1042,12 @@ public class GUI extends JFrame{
             } catch (IOException ex) {
                 Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
             }
-            System.out.println(playlistName);     
+            System.out.println(playlistName);   
+            //Add the playlist to the popup menu
+            menuItem = new JMenuItem(playlistName);
+            menuItem.addActionListener(new addSongToPlaylistFromPopupMenu());
+            playlistSubmenu.add(menuItem);
+            //Add the playlist to the tree and refresh the tree
             playlistNode = new DefaultMutableTreeNode(playlistName);
             playlists.add(playlistNode);
             treeModel.reload(playlists);
@@ -1064,6 +1118,8 @@ public class GUI extends JFrame{
         library = new DefaultMutableTreeNode("Library");
         top.add(library);
         playlists = new DefaultMutableTreeNode("Playlists");
+        fileReader = new FileReader("playlistnames.txt");
+        bufferedReader = new BufferedReader(fileReader);
         while((line = bufferedReader.readLine()) != null)
         {            
             playlistNode = new DefaultMutableTreeNode(line);
@@ -1124,8 +1180,7 @@ public class GUI extends JFrame{
     }
     public void createPlaylistTableView(String libName) throws FileNotFoundException, SQLException, IOException
     {
-        this.remove(dataTable);
-        this.remove(sp);
+        splitPane.remove(sp);
         
         db.findNumbItems(libName);
         db.findNumbCols(libName);
@@ -1143,7 +1198,8 @@ public class GUI extends JFrame{
         dataTable.getSelectionModel().addListSelectionListener(new rowSelector());
         dataTable.setModel(model);
         
-        this.add(sp);
+        splitPane.add(sp);
+        splitPane.setDividerLocation(140);
         
         setVisible(true);
         
