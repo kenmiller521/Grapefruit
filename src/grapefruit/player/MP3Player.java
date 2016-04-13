@@ -46,7 +46,7 @@ public class MP3Player implements Runnable
     private String artist;
     private String year;
     private String comment;
-    private int genre;
+    private String genre;
     private String path;
     private int gain;
     private FloatControl volumeController;
@@ -68,7 +68,7 @@ public class MP3Player implements Runnable
         artist = id3v2Tag.getArtist();
         year = id3v2Tag.getYear();
         comment = id3v2Tag.getComment();
-        genre = id3v2Tag.getGenre();
+        genre = id3v2Tag.getGenreDescription();
         
     }
     public void testPlay(String filename)
@@ -246,7 +246,7 @@ public class MP3Player implements Runnable
         artist = id3v2Tag.getArtist();
         year = id3v2Tag.getYear();
         comment = id3v2Tag.getComment();
-        genre = id3v2Tag.getGenre();
+        genre = id3v2Tag.getGenreDescription();
     }
     public String getPath()
     {
@@ -291,7 +291,7 @@ public class MP3Player implements Runnable
     {
         return comment;
     }
-    public int getGenre()
+    public String getGenre()
     {
         return genre;
     }
@@ -311,9 +311,9 @@ public class MP3Player implements Runnable
     {
         year = y;
     }
-    public void setGenre(int i)
+    public void setGenre(String s)
     {
-        genre = i;
+        genre = s;
     }
     public void setComment(String c)
     {

@@ -10,7 +10,6 @@ import com.mpatric.mp3agic.UnsupportedTagException;
 import static grapefruit.player.GrapefruitPlayer.db;
 import static grapefruit.player.GrapefruitPlayer.player;
 import static grapefruit.player.SQLDatabase.dispNull;
-import static grapefruit.player.SQLDatabase.dispNullInt;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
@@ -80,7 +79,7 @@ public class GUI extends JFrame{
     static final int FPS_INIT = 15;
     private int volumeLevel;
     private JSlider volumeSlider;
-    private String playlistName;
+    private String playlistName = "songs";
     private JTextField createPlaylistTextField;
     private JFrame createPlaylistframe;
     private DefaultMutableTreeNode playlistNode;
@@ -832,7 +831,7 @@ public class GUI extends JFrame{
             dispNull(player.getAlbum()),
             dispNull(player.getArtist()),
             dispNull(player.getYear()),
-            dispNullInt(player.getGenre()),
+            dispNull(player.getGenre()),
             dispNull(player.getComment()),
             dispNull(player.getPath())};
         model.addRow(temp);

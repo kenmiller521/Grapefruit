@@ -10,6 +10,7 @@ import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import javazoom.jlgui.basicplayer.*;
 import java.io.IOException;
@@ -34,26 +35,17 @@ public class GrapefruitPlayer {
      */
    
     public static void main(String[] args) throws IOException, UnsupportedTagException, InvalidDataException, BasicPlayerException, UnsupportedAudioFileException, ClassNotFoundException, SQLException {
-       
-       
-       //Code below is for testing only. Once we figure everything out we will
-       //clean up the main function by putting things in classes and functions
-       
-       
-       //Get the path of the song, this is an example if the mp3 file
-       //is on the desktop.
-       //String path = "C:/Users/USER/Desktop/samplesongs/SONGNAME.mp3";
-       //Connect to SQL Database
-	    //File file = new File("playlistnames.txt");
-            if (new File("playlistnames.txt").exists() == false)
-            {
-                //file.createNewFile();
-                System.out.println("File is created!");
-            }
-            else
-            {
-                System.out.println("File already exists.");
-            }
+       File file = new File("playlistnames.txt");
+       //new File("playlistnames.txt").exists() == false
+        if (file.createNewFile())
+        {
+            //file.createNewFile();
+            System.out.println("File is created!");
+        }
+        else
+        {
+            System.out.println("File already exists.");
+        }
        db = new SQLDatabase();
        db.connect();
        player = new MP3Player();
@@ -111,4 +103,5 @@ public class GrapefruitPlayer {
        //System.out.println("Has ID3v2 tag?: " + (mp3file.hasId3v2Tag() ? "YES" : "NO"));
        //System.out.println("Has custom tag?: " + (mp3file.hasCustomTag() ? "YES" : "NO"));
     }    
+    
 }

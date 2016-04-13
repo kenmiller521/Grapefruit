@@ -115,13 +115,14 @@ public class SQLDatabase {
         else
             return input;
     }
+     /*
      public static int dispNullInt(int input){
          if( input == -1)
              return 0;
          else
              return input;
              
-     }
+     }*/
     public void testConnection() throws SQLException
     {
         try
@@ -155,7 +156,7 @@ public class SQLDatabase {
             {
                 System.out.println("CREATING TABLE songs");
                 stmt = conn.createStatement();
-                sql = "CREATE TABLE songs (title VARCHAR(40), album VARCHAR(40), artist VARCHAR (40), pubdate VARCHAR(4), genre integer, comment VARCHAR(50),path VARCHAR(200))";
+                sql = "CREATE TABLE songs (title VARCHAR(40), album VARCHAR(40), artist VARCHAR (40), pubdate VARCHAR(4), genre VARCHAR(30), comment VARCHAR(50),path VARCHAR(200))";
                 stmt.execute(sql);
                 stmt.close();
             }
@@ -234,7 +235,7 @@ public class SQLDatabase {
             pstmt.setString(2, player.getAlbum());
             pstmt.setString(3, player.getArtist());
             pstmt.setString(4, player.getYear());
-            pstmt.setInt(5, player.getGenre());
+            pstmt.setString(5, player.getGenre());
             pstmt.setString(6, player.getComment());
             pstmt.setString(7, player.getPath());
             pstmt.execute();
@@ -321,14 +322,14 @@ public class SQLDatabase {
                     String al = rs.getString(2);
                     String ar = rs.getString(3);
                     String y = rs.getString(4);
-                    int g = rs.getInt(5);
+                    String g = rs.getString(5);
                     String c = rs.getString(6);
                     String p = rs.getString(7);
                    temp[i][0] = dispNull(t);
                    temp[i][1] = dispNull(al);
                    temp[i][2] = dispNull(ar);
                    temp[i][3] = dispNull(y);
-                   temp[i][4] = dispNullInt(g);
+                   temp[i][4] = dispNull(g);
                    temp[i][5] = dispNull(c);
                    temp[i][6] = dispNull(p);
                    i++;              
