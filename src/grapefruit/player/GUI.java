@@ -416,7 +416,7 @@ public class GUI extends JFrame{
         public void actionPerformed(ActionEvent e)
         {
             JMenuItem menu = (JMenuItem)e.getSource();
-            if(dataTable.getSelectedRow() > -1)
+            if(dataTable.getSelectedRow() > -1 ||dataTablePlaylist.getSelectedRow() > -1)
             {
                 System.out.println("Selected: " + e.getActionCommand());
                 if (e.getActionCommand() == "Add New Song")
@@ -1069,6 +1069,7 @@ public class GUI extends JFrame{
             dispNull(player.getComment()),
             dispNull(player.getPath())};
         model.addRow(temp);
+        modelplaylist.addRow(temp);
     }
     public class addSongMenuButton implements ActionListener
     {
@@ -1162,6 +1163,7 @@ public class GUI extends JFrame{
         public void actionPerformed(ActionEvent e) 
         {
             int selectedRow = dataTable.getSelectedRow();
+            int selectedRowPlaylist = dataTablePlaylist.getSelectedRow();
             try 
             {
                 if(selectedRow != -1)
@@ -1171,9 +1173,16 @@ public class GUI extends JFrame{
                     db.deleteSong(playlistName, s);
                     final int c = dataTable.getSelectedRow();
                     model.removeRow(c);
+                    modelplaylist.removeRow(c);
                     System.out.println("Delete song selected");
                 }
-                else
+               /* if(selectedRowPlaylist != -1){
+                     String r = dataTablePlaylist.getValueAt(dataTablePlaylist.getSelectedRow(), 0).toString();
+                     db.deleteSong(playlistName,r);
+                     final int d = dataTablePlaylist.getSelectedRow();
+                     modelplaylist.removeRow(d);
+                }
+               */ else
                 {
                     System.out.println("MAKE SELECTION TO DELETE");
                 }
