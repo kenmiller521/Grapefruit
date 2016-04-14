@@ -58,7 +58,7 @@ public class GUI extends JFrame{
     //MP3Player player;
     private Thread t;
     private boolean paused;
-    JTable dataTable;
+    JTable dataTable,dataTablePlaylist;
     JScrollPane sp;
     JMenuBar menuBar;
     JMenu menu, submenu;
@@ -68,6 +68,7 @@ public class GUI extends JFrame{
     private String columnNames[] = {"Title", "Album","Artist","Year","Genre","Comment","File Path"};
     private int currentSongIndex;
     DefaultTableModel model = new DefaultTableModel();
+    DefaultTableModel modelplaylist = new DefaultTableModel();
     private JMenuItem menuItemAdd,menuItemDelete, menuItemClose;
     private JMenu playlistSubmenu;
     private JPopupMenu popupMenu,playlistPopupMenu;
@@ -79,7 +80,7 @@ public class GUI extends JFrame{
     static final int FPS_MAX = 60;
     static final int FPS_INIT = 15;
     private int volumeLevel;
-    private JSlider volumeSlider;
+    private JSlider volumeSlider,volumeSliderPlaylist;
     private String playlistName = "songs";
     private JTextField createPlaylistTextField;
     private JFrame createPlaylistframe;
@@ -191,6 +192,21 @@ public class GUI extends JFrame{
         dataTable.getSelectionModel().addListSelectionListener(new rowSelector());
         dataTable.setModel(model);
         
+        
+         modelplaylist = new DefaultTableModel(data, columnNames);
+       // dataTable = new JTable(data,columnNames);
+        dataTablePlaylist = new JTable(modelplaylist);
+    //   dataTable.addMouseListener(new TableMouseListener(dataTable));
+        dataTablePlaylist.setComponentPopupMenu(popupMenu);
+        dataTablePlaylist.setDragEnabled(true);
+        dataTablePlaylist.setDropMode(DropMode.INSERT_ROWS);
+        dataTablePlaylist.setTransferHandler(new TableRowTransferHandler(dataTablePlaylist));
+        //dataTable = new JTable(data,columnNames);
+        sp = new JScrollPane(dataTablePlaylist);
+        dataTablePlaylist.setFillsViewportHeight(true);
+        dataTablePlaylist.getSelectionModel().addListSelectionListener(new rowSelector());
+        dataTablePlaylist.setModel(modelplaylist);
+        
         //this.add(sp);
         //this.add(sp);
         //this.add(list);
@@ -198,6 +214,10 @@ public class GUI extends JFrame{
                                       FPS_MIN, FPS_MAX, FPS_INIT);
         volumeSlider.addChangeListener(new volumeSliderListener());
         volumeSlider.setValue((int) (FPS_MAX/1.5));
+               volumeSliderPlaylist = new JSlider(JSlider.HORIZONTAL,
+                                     FPS_MIN, FPS_MAX, FPS_INIT);
+        volumeSliderPlaylist.addChangeListener(new volumeSliderListener());
+        volumeSliderPlaylist.setValue((int) (FPS_MAX/1.5));
         //volumeSlider.setMajorTickSpacing(10);
         //volumeSlider.setMinorTickSpacing(1);
         //volumeSlider.setPaintTicks(true);
@@ -213,7 +233,7 @@ public class GUI extends JFrame{
         playerButtonsPanelPlaylist.add(stopplaylist);
         playerButtonsPanelPlaylist.add(backplaylist);
         playerButtonsPanelPlaylist.add(forwardplaylist);  
-      //  playerButtonsPanelPlaylist.add(volumeSlider);
+        playerButtonsPanelPlaylist.add(volumeSliderPlaylist);
 
         
         
