@@ -295,6 +295,7 @@ public class GUI extends JFrame{
             try 
             {
                 createPlaylistNewWindowTableView(playlistName);
+                createPlaylistTableView("songs");
             } catch (SQLException ex) {
                 Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
@@ -395,7 +396,8 @@ public class GUI extends JFrame{
             player.printMp3Info();
             try 
             {
-                db.addSong(playlistName);
+                //db.addSong(playlistName);
+                addSongToPlaylistTable();
                 //addSongToTable();
             }
             catch (SQLException ex) 
@@ -428,6 +430,8 @@ public class GUI extends JFrame{
                         openFileExplorerAndAddedSong(); 
                         db.addSong(playlistName);
                         addSongToTable();
+                        addSongToPlaylistTable();
+                        //createPlaylistNewWindowTableView(playlistName);
                     } 
                     catch (IOException ex) 
                     {
@@ -449,12 +453,19 @@ public class GUI extends JFrame{
                 } 
                 else if (e.getActionCommand()=="Delete Song") 
                 {
+                    int selectedRowPlaylist = dataTablePlaylist.getSelectedRow();
                     int selectedRow = dataTable.getSelectedRow();
                     try 
                     {
+                        String spl = dataTablePlaylist.getValueAt(dataTablePlaylist.getSelectedRow(), 0).toString();
+                        System.out.println(spl);
+                        db.deleteSong(previouslySelectedPlaylistName, spl);
+                        modelPlaylist.removeRow(dataTablePlaylist.getSelectedRow());
+                        
                         String s = dataTable.getValueAt(dataTable.getSelectedRow(), 0).toString();
                         System.out.println(s);
-                         db.deleteSong(playlistName, s);
+                        db.deleteSong(playlistName, s);
+                        model.removeRow(dataTablePlaylist.getSelectedRow());
                     } 
                     catch (IOException ex) 
                     {
