@@ -254,6 +254,7 @@ public class GUI extends JFrame{
         
         //Call the function to create a menu bar and add to the frame
         this.setJMenuBar(addMenuBar());
+        playlistframe.setJMenuBar(addMenuBar());
         
         top = new DefaultMutableTreeNode("Grapefruit");
         tree = new JTree(top);
