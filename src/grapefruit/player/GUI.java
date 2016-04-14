@@ -77,7 +77,7 @@ public class GUI extends JFrame{
     private String columnNames[] = {"Title", "Album","Artist","Year","Genre","Comment","File Path"};
     private int currentSongIndex;
     DefaultTableModel model = new DefaultTableModel();
-    DefaultTableModel modelplaylist = new DefaultTableModel();
+    //DefaultTableModel modelplaylist = new DefaultTableModel();
     private JMenuItem menuItemAdd,menuItemDelete, menuItemClose;
     private JMenu playlistSubmenu;
     private JPopupMenu popupMenu,playlistPopupMenu;
@@ -91,6 +91,7 @@ public class GUI extends JFrame{
     private int volumeLevel;
     private JSlider volumeSlider,volumeSliderPlaylist;
     private String playlistName = "songs";
+    private String previouslySelectedPlaylistName;
     private JTextField createPlaylistTextField;
     private JFrame createPlaylistframe;
     private DefaultMutableTreeNode playlistNode;
@@ -107,6 +108,7 @@ public class GUI extends JFrame{
     private TreePath[] paths;
     private BufferedReader br;
     private PrintWriter pw;
+    private boolean isNotInMainLibraryAndAdded;
     /**
      *
      * @throws IOException
@@ -208,19 +210,19 @@ public class GUI extends JFrame{
         dataTable.setModel(model);
         
         
-         modelplaylist = new DefaultTableModel(data, columnNames);
+         modelPlaylist = new DefaultTableModel(data, columnNames);
        // dataTable = new JTable(data,columnNames);
-        dataTablePlaylist = new JTable(modelplaylist);
+        dataTablePlaylist = new JTable(modelPlaylist);
     //   dataTable.addMouseListener(new TableMouseListener(dataTable));
         dataTablePlaylist.setComponentPopupMenu(popupMenu);
         dataTablePlaylist.setDragEnabled(true);
         dataTablePlaylist.setDropMode(DropMode.INSERT_ROWS);
-        dataTablePlaylist.setTransferHandler(new TableRowTransferHandler(dataTablePlaylist));
+        dataTablePlaylist.setTransferHandler(new TableRowPlaylistTransferHandler(dataTablePlaylist));
         //dataTable = new JTable(data,columnNames);
         sp = new JScrollPane(dataTablePlaylist);
         dataTablePlaylist.setFillsViewportHeight(true);
         dataTablePlaylist.getSelectionModel().addListSelectionListener(new rowSelector());
-        dataTablePlaylist.setModel(modelplaylist);
+        dataTablePlaylist.setModel(modelPlaylist);
         
         //this.add(sp);
         //this.add(sp);
@@ -1059,7 +1061,7 @@ public class GUI extends JFrame{
         }
         return temp;
     }
-    public void addSongToTable()
+    public void addSongToTable() throws SQLException
     {
         Object temp[] = {dispNull(player.getTitle()),
             dispNull(player.getAlbum()),
@@ -1068,9 +1070,57 @@ public class GUI extends JFrame{
             dispNull(player.getGenre()),
             dispNull(player.getComment()),
             dispNull(player.getPath())};
-        model.addRow(temp);
-        modelplaylist.addRow(temp);
+        model.addRow(temp);        
     }
+    public void addSongToPlaylistTable() throws SQLException, FileNotFoundException
+    {
+        Object temp[] = {dispNull(player.getTitle()),
+            dispNull(player.getAlbum()),
+            dispNull(player.getArtist()),
+            dispNull(player.getYear()),
+            dispNull(player.getGenre()),
+            dispNull(player.getComment()),
+            dispNull(player.getPath())};
+        addSongToMainLibrary();
+        modelPlaylist.addRow(temp); 
+        db.addSong(previouslySelectedPlaylistName);
+        if(isNotInMainLibraryAndAdded == true)
+            model.addRow(temp);
+        isNotInMainLibraryAndAdded = false;
+    }
+    public void addSongToMainLibrary() throws SQLException, FileNotFoundException
+    {
+       if(db.inLibrary(player.getTitle(), player.getArtist()))
+       {           
+           isNotInMainLibraryAndAdded = false;
+           System.out.println("IN");
+       }
+       else
+       {
+           if(playlistName != "songs")
+           {
+               playlistName = "songs";
+               System.out.println("$$$$$$$ "+ playlistName);
+               System.out.println("********* "+ previouslySelectedPlaylistName);
+               db.addSong(playlistName);
+               
+               isNotInMainLibraryAndAdded = true;
+               
+           }
+           else
+           {
+               //if playlistName IS "songs"
+               System.out.println("&&&&&&&&&&& "+ playlistName);
+               db.addSong(playlistName);
+               isNotInMainLibraryAndAdded = true;
+               //db.addSong(previouslySelectedPlaylistName);
+           }
+           
+               
+           System.out.println("NOT IN");
+       }
+    }
+    
     public class addSongMenuButton implements ActionListener
     {
 
@@ -1173,7 +1223,7 @@ public class GUI extends JFrame{
                     db.deleteSong(playlistName, s);
                     final int c = dataTable.getSelectedRow();
                     model.removeRow(c);
-                    modelplaylist.removeRow(c);
+                    modelPlaylist.removeRow(c);
                     System.out.println("Delete song selected");
                 }
                /* if(selectedRowPlaylist != -1){
@@ -1298,7 +1348,55 @@ public class GUI extends JFrame{
             catch(Exception e)
             {
                 System.out.println("DOES NOT SUPPORT THAT INPUT");
-                //e.printStackTrace();
+                e.printStackTrace();
+            }    
+            
+            return true;
+        }
+    }
+    public class TableRowPlaylistTransferHandler extends TransferHandler 
+    {
+
+        private TableRowPlaylistTransferHandler(JTable dataTable) 
+        {
+
+        }
+        public boolean canImport(TransferHandler.TransferSupport info) 
+        {
+        // Check for String flavor
+            if (!info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) 
+            {
+                return false;
+            }
+            return true;
+        }
+        public boolean importData(TransferHandler.TransferSupport info) 
+        {
+            if (!info.isDrop()) 
+            {
+                return false;
+            }
+            Transferable t = info.getTransferable();
+            File file = null;
+            try
+            {
+                java.util.List<File> l =
+                    (java.util.List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
+                
+                for(File f : l)
+                {
+                    file = f;
+                }
+                player.setPath(file.getPath());
+                player.printMp3Info();
+                
+                addSongToPlaylistTable();
+                
+            }
+            catch(Exception e)
+            {
+                System.out.println("DOES NOT SUPPORT THAT INPUT");
+                e.printStackTrace();
             }    
             
             return true;
@@ -1341,9 +1439,14 @@ public class GUI extends JFrame{
             {
                 System.out.println("You clicked " + node.toString());
                 if(node.toString() == "Library")
+                {
                     playlistName = "songs";
+                }
                 else
+                {
                     playlistName = node.toString();
+                    previouslySelectedPlaylistName = node.toString();
+                }
                 try {
                     createPlaylistTableView(playlistName);
                 } catch (SQLException ex) {
@@ -1415,7 +1518,7 @@ public class GUI extends JFrame{
         dataTablePlaylist.setComponentPopupMenu(popupMenu);
         dataTablePlaylist.setDragEnabled(true);
         dataTablePlaylist.setDropMode(DropMode.INSERT_ROWS);
-        dataTablePlaylist.setTransferHandler(new TableRowTransferHandler(dataTablePlaylist));
+        dataTablePlaylist.setTransferHandler(new TableRowPlaylistTransferHandler(dataTablePlaylist));
         spPlaylist = new JScrollPane(dataTablePlaylist);
         dataTablePlaylist.setFillsViewportHeight(true);
         dataTablePlaylist.getSelectionModel().addListSelectionListener(new rowSelectorNewWindow());

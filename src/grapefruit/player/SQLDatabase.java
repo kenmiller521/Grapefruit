@@ -369,4 +369,23 @@ public class SQLDatabase {
             e.printStackTrace();
         }         
     }
+    public boolean inLibrary(String songName, String artistName) throws SQLException
+    {
+        boolean isInLibrary = false;
+        conn = DriverManager.getConnection(DB_URL);
+        stmt = conn.createStatement();
+        sql = "SELECT title, artist FROM songs";
+        pstmt = conn.prepareStatement(sql);
+        rs = pstmt.executeQuery();
+        rsmd = rs.getMetaData();
+        while(rs.next())
+        {
+            if(songName.equals(rs.getString(1)) && artistName.equals(rs.getString(2)))
+            {
+                isInLibrary = true;
+            }
+        }
+       
+        return isInLibrary;
+    }
 }
