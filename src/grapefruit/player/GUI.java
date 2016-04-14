@@ -52,9 +52,9 @@ import javax.swing.tree.TreeSelectionModel;
  * @author ken_m
  */
 public class GUI extends JFrame{
-    JFrame frame;
-    JPanel playerButtonsPanel;
-    JButton play, pause,stop,back,forward;
+    JFrame frame,playlistframe;
+    JPanel playerButtonsPanel,playerButtonsPanelPlaylist;
+    JButton play, pause,stop,back,forward,playplaylist,pauseplaylist, stopplaylist, backplaylist, forwardplaylist;
     //MP3Player player;
     private Thread t;
     private boolean paused;
@@ -102,22 +102,37 @@ public class GUI extends JFrame{
     public GUI() throws IOException, UnsupportedTagException, InvalidDataException, SQLException
     {
         super("My GUI");
-        
         paused = false;
+        playlistframe = new JFrame();
+        playlistframe.setSize(800,500);
+        playlistframe.setTitle("Grapfruit Player New Window");
+      
         this.setSize(800, 500);
         this.setTitle("Grapefruit Player");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         playerButtonsPanel = new JPanel();
+        playerButtonsPanelPlaylist = new JPanel();
         this.add(playerButtonsPanel,BorderLayout.SOUTH);
+        playlistframe.add(playerButtonsPanelPlaylist,BorderLayout.SOUTH);
         play = new JButton("Play");
+        playplaylist = new JButton("Play");
+        playplaylist.addActionListener(new playButtonListener());
         play.addActionListener(new playButtonListener());
         pause = new JButton("Pause");
         pause.addActionListener(new pauseButtonListener());
+        pauseplaylist = new JButton("Pause");
+        pauseplaylist.addActionListener(new pauseButtonListener());
         stop = new JButton("Stop");
+        stopplaylist = new JButton("Stop");
+        stopplaylist.addActionListener(new stopButtonListener());
         stop.addActionListener(new stopButtonListener());
         back = new JButton("Back");
+        backplaylist = new JButton("Back");
+        backplaylist.addActionListener(new backButtonListener());
         back.addActionListener(new backButtonListener());
         forward = new JButton("Forward");
+        forwardplaylist = new JButton("Forward");
+        forwardplaylist.addActionListener(new forwardButtonListener());
         forward.addActionListener(new forwardButtonListener());
         //JList list = new JList();
         popupMenu = new JPopupMenu();
@@ -193,6 +208,13 @@ public class GUI extends JFrame{
         playerButtonsPanel.add(back);
         playerButtonsPanel.add(forward);  
         playerButtonsPanel.add(volumeSlider);
+        playerButtonsPanelPlaylist.add(playplaylist);
+        playerButtonsPanelPlaylist.add(pauseplaylist);
+        playerButtonsPanelPlaylist.add(stopplaylist);
+        playerButtonsPanelPlaylist.add(backplaylist);
+        playerButtonsPanelPlaylist.add(forwardplaylist);  
+      //  playerButtonsPanelPlaylist.add(volumeSlider);
+
         
         
         //Call the function to create a menu bar and add to the frame
@@ -210,8 +232,10 @@ public class GUI extends JFrame{
         playlistPopupMenu = new JPopupMenu();
         menuItem = new JMenuItem("Open in New Window");
         playlistPopupMenu.add(menuItem);
+        menuItem.addActionListener(new OpenInNewWindow());
         menuItem = new JMenuItem("Delete Playlist");
         playlistPopupMenu.add(menuItem);
+        menuItem.addActionListener(new DeletePlaylist());
         tree.setComponentPopupMenu(playlistPopupMenu);
         //treeView.setComponentPopupMenu(playlistPopupMenu);
         
@@ -224,7 +248,20 @@ public class GUI extends JFrame{
         setVisible(true);
         
     }
-      
+    class OpenInNewWindow implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent e){
+            System.out.println("You clicked Open Window!");
+            playlistframe.setVisible(true);
+        }
+    } 
+    class DeletePlaylist implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent e){
+            System.out.println("You clicked Delete Playlist!");
+        }
+        
+    }
     class addSongToPlaylistFromPopupMenu implements ActionListener
     {
 
