@@ -92,6 +92,9 @@ public class GUI extends JFrame{
     private DefaultTreeModel treeModel;
     private DefaultMutableTreeNode top;
     private JFrame createPlaylistFrame;
+    private DefaultTableModel modelPlaylist;
+    private JTable dataTablePlaylist;
+    private JScrollPane spPlaylist;
     /**
      *
      * @throws IOException
@@ -272,6 +275,16 @@ public class GUI extends JFrame{
         @Override
         public void actionPerformed(ActionEvent e){
             System.out.println("You clicked Open Window!");
+            
+            
+            try 
+            {
+                createPlaylistNewWindowTableView(playlistName);
+            } catch (SQLException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
             playlistframe.setVisible(true);
         }
     } 
@@ -910,6 +923,34 @@ public class GUI extends JFrame{
             }
         }
     }
+    public class rowSelectorNewWindow implements ListSelectionListener{
+
+        @Override
+        public void valueChanged(ListSelectionEvent e) 
+        {
+            
+            currentSongIndex = dataTablePlaylist.getSelectedRow();
+            //GET TAG INFORMATION TO PLAY SONG
+            if(!e.getValueIsAdjusting())
+            {
+                if (dataTablePlaylist.getSelectedRow() > -1) 
+                {
+                    
+                    try 
+                    {
+                        player.setPath(dataTablePlaylist.getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
+                        player.printMp3Info();
+                    } catch (IOException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (UnsupportedTagException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (InvalidDataException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }
+    }
     public boolean openFileExplorerAndAddedSong() throws IOException, UnsupportedTagException, InvalidDataException, SQLException
     {
         boolean temp = false;
@@ -1259,6 +1300,35 @@ public class GUI extends JFrame{
         splitPane.setDividerLocation(140);
         
         setVisible(true);
+        
+    }
+    public void createPlaylistNewWindowTableView(String libName) throws FileNotFoundException, SQLException, IOException
+    {
+        
+        //playlistframe.remove(spPlaylistWindow);
+        //splitPane.remove(sp);
+        
+        db.findNumbItems(libName);
+        db.findNumbCols(libName);
+        
+        Object data[][] = db.populateTable(libName, db.getNumbRows(),db.getNumbCols());
+        
+        modelPlaylist = new DefaultTableModel(data, columnNames);
+        dataTablePlaylist = new JTable(modelPlaylist);
+        dataTablePlaylist.setComponentPopupMenu(popupMenu);
+        dataTablePlaylist.setDragEnabled(true);
+        dataTablePlaylist.setDropMode(DropMode.INSERT_ROWS);
+        dataTablePlaylist.setTransferHandler(new TableRowTransferHandler(dataTablePlaylist));
+        spPlaylist = new JScrollPane(dataTablePlaylist);
+        dataTablePlaylist.setFillsViewportHeight(true);
+        dataTablePlaylist.getSelectionModel().addListSelectionListener(new rowSelectorNewWindow());
+        dataTablePlaylist.setModel(modelPlaylist);
+        
+        playlistframe.add(spPlaylist);
+        //splitPane.add(sp);
+        //splitPane.setDividerLocation(140);
+        
+        //setVisible(true);/
         
     }
 }
