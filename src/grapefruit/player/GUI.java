@@ -8,6 +8,7 @@ package grapefruit.player;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import static grapefruit.player.GrapefruitPlayer.db;
+import static grapefruit.player.GrapefruitPlayer.file;
 import static grapefruit.player.GrapefruitPlayer.player;
 import static grapefruit.player.SQLDatabase.dispNull;
 import java.awt.event.ActionEvent;
@@ -27,10 +28,17 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -46,6 +54,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 /**
  *
@@ -93,8 +102,11 @@ public class GUI extends JFrame{
     private DefaultMutableTreeNode top;
     private JFrame createPlaylistFrame;
     private DefaultTableModel modelPlaylist;
-    private JTable dataTablePlaylist;
+    //private JTable dataTablePlaylist;
     private JScrollPane spPlaylist;
+    private TreePath[] paths;
+    private BufferedReader br;
+    private PrintWriter pw;
     /**
      *
      * @throws IOException
@@ -288,12 +300,87 @@ public class GUI extends JFrame{
             playlistframe.setVisible(true);
         }
     } 
-    class DeletePlaylist implements ActionListener{
+    class DeletePlaylist implements ActionListener
+    {
+        private TreePath[] paths;
         @Override
-        public void actionPerformed(ActionEvent e){
-            System.out.println("You clicked Delete Playlist!");
+        public void actionPerformed(ActionEvent e)
+        {
+            
+            
+            try 
+            {
+                System.out.println("You clicked Delete Playlist!");
+                //Delete from tree
+                DefaultMutableTreeNode node;
+                DefaultTreeModel model = (DefaultTreeModel) (tree.getModel());
+                paths = tree.getSelectionPaths();
+                for (int i = 0; i < paths.length; i++) 
+                {
+                    node = (DefaultMutableTreeNode) (paths[i].getLastPathComponent());
+                    model.removeNodeFromParent(node);
+                }
+            
+                //Delete from Database
+                db.dropTable(playlistName);
+                
+                //Delete from text file
+                File inputFile = new File("playlistnames.txt");
+                File tempFile = new File("myTempFile.txt");
+
+                BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+                BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+
+                String lineToRemove = playlistName;
+                String currentLine;
+
+                while((currentLine = reader.readLine()) != null) {
+                    // trim newline when comparing with lineToRemove
+                    String trimmedLine = currentLine.trim();
+                    if(trimmedLine.equals(lineToRemove)) continue;
+                    writer.write(currentLine + System.getProperty("line.separator"));
+                }
+                boolean successful = tempFile.renameTo(inputFile);
+                writer.close(); 
+                reader.close(); 
+                
+                
+                FileReader fr = null;
+                FileWriter fw = null;
+                try 
+                {
+                    fr = new FileReader("myTempFile.txt");
+                    fw = new FileWriter("playlistnames.txt");
+                    int c = fr.read();
+                    while(c!=-1) {
+                        fw.write(c);
+                        c = fr.read();
+                    }                
+                } finally {
+                    close(fr);
+                    close(fw);
+                }
+                  
+            } 
+            catch (SQLException ex) 
+            {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         
+    }
+     public static void close(Closeable stream) {
+        try {
+            if (stream != null) {
+                stream.close();
+            }
+        } catch(IOException e) {
+            //...
+        }
     }
     class addSongToPlaylistFromPopupMenu implements ActionListener
     {
@@ -1331,4 +1418,5 @@ public class GUI extends JFrame{
         //setVisible(true);/
         
     }
+   
 }

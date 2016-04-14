@@ -27,6 +27,7 @@ public class GrapefruitPlayer {
     public static MP3Player player;
     public static SQLDatabase db;
     public static GUI gui;
+    public static File file;
     
     
 
@@ -35,7 +36,7 @@ public class GrapefruitPlayer {
      */
    
     public static void main(String[] args) throws IOException, UnsupportedTagException, InvalidDataException, BasicPlayerException, UnsupportedAudioFileException, ClassNotFoundException, SQLException {
-       File file = new File("playlistnames.txt");
+       file = new File("playlistnames.txt");
        //new File("playlistnames.txt").exists() == false
         if (file.createNewFile())
         {

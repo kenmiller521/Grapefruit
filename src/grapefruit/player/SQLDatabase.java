@@ -172,13 +172,13 @@ public class SQLDatabase {
         }
         
     }
-    public void dropTable() throws SQLException
+    public void dropTable(String libName) throws SQLException
     {
         try
         {
-            System.out.println("DROPPING TEMP TABLE AUTHORS");
+            conn = DriverManager.getConnection(DB_URL);
             stmt = conn.createStatement();
-            sql = "DROP TABLE songs";
+            sql = "DROP TABLE " + libName;
             stmt.executeUpdate(sql);
 
             if(!dbExists())
