@@ -52,6 +52,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -91,7 +92,7 @@ public class GUI extends JFrame{
     private int volumeLevel;
     private JSlider volumeSlider,volumeSliderPlaylist;
     private String playlistName = "songs";
-    private String previouslySelectedPlaylistName;
+    private String previouslySelectedPlaylistName = "songs";
     private JTextField createPlaylistTextField;
     private JFrame createPlaylistframe;
     private DefaultMutableTreeNode playlistNode;
@@ -134,7 +135,7 @@ public class GUI extends JFrame{
         playlistframe.add(playerButtonsPanelPlaylist,BorderLayout.SOUTH);
         play = new JButton("Play");
         playplaylist = new JButton("Play");
-        playplaylist.addActionListener(new playButtonListener());
+        playplaylist.addActionListener(new playButtonPlaylistListener());
         play.addActionListener(new playButtonListener());
         pause = new JButton("Pause");
         pause.addActionListener(new pauseButtonListener());
@@ -146,11 +147,11 @@ public class GUI extends JFrame{
         stop.addActionListener(new stopButtonListener());
         back = new JButton("Back");
         backplaylist = new JButton("Back");
-        backplaylist.addActionListener(new backButtonListener());
+        backplaylist.addActionListener(new backButtonPlaylistListener());
         back.addActionListener(new backButtonListener());
         forward = new JButton("Forward");
         forwardplaylist = new JButton("Forward");
-        forwardplaylist.addActionListener(new forwardButtonListener());
+        forwardplaylist.addActionListener(new forwardButtonPlaylistListener());
         forward.addActionListener(new forwardButtonListener());
         //JList list = new JList();
         popupMenu = new JPopupMenu();
@@ -223,7 +224,7 @@ public class GUI extends JFrame{
         dataTablePlaylist.setFillsViewportHeight(true);
         dataTablePlaylist.getSelectionModel().addListSelectionListener(new rowSelector());
         dataTablePlaylist.setModel(modelPlaylist);
-        
+        dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(6));
         //this.add(sp);
         //this.add(sp);
         //this.add(list);
@@ -501,11 +502,13 @@ public class GUI extends JFrame{
                 {                    
                     try 
                     {
-                        player.printMp3Info();
+                        
                         player.stopPlay();
                         player = null;
                         player = new MP3Player();
-                        player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
+                        player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
+                        player.printMp3Info();
+                        //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
                         if(t.isAlive())
                         {                                     
                             t = new Thread(player,"test");
@@ -532,11 +535,88 @@ public class GUI extends JFrame{
             {    
                 try 
                 {
-                    player.printMp3Info();
+                    
                     //player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());                  
+                    player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(),6).toString());
+                    player.printMp3Info();
+                    //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());                  
+                    t = new Thread(player,"test");
+                    t.start();
+                    player.setVolume(volumeLevel);
+                } 
+                catch (IOException ex) 
+                {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } 
+                catch (UnsupportedTagException ex) 
+                {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } 
+                catch (InvalidDataException ex) 
+                {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    
+                }
+            }                    
+        }        
+    }
+    class playButtonPlaylistListener implements ActionListener
+    {
+
+        @Override
+        public void actionPerformed(ActionEvent e) 
+        {
+            //TEMP SPOT TO TEST BUTTON FUNCTIONALITIES
+            
+            
+            if(player.isRunning())
+            {
+                if(t.isAlive()) 
+                {                    
+                    try 
+                    {
+                        
+                        player.stopPlay();
+                        player = null;
+                        player = new MP3Player();
+                        player.setPath(dataTablePlaylist.getModel().getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
+                        player.printMp3Info();
+                        //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
+                        if(t.isAlive())
+                        {                                     
+                            t = new Thread(player,"test");
+                            t.start();
+                            player.setVolume(volumeLevel);
+                        }
+                    } 
+                    catch (IOException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } 
+                    catch (UnsupportedTagException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } 
+                    catch (InvalidDataException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                          
+                }
+            }
+            else
+            {    
+                try 
+                {
+                    
+                    //player.stopPlay();
+                    player = null;
+                    player = new MP3Player();
+                    player.setPath(dataTablePlaylist.getModel().getValueAt(dataTablePlaylist.getSelectedRow(),6).toString());
+                    player.printMp3Info();
+                    //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());                  
                     t = new Thread(player,"test");
                     t.start();
                     player.setVolume(volumeLevel);
@@ -616,11 +696,13 @@ public class GUI extends JFrame{
                 {
                     currentSongIndex = dataTable.getRowCount()-1;
                     
-                    player.printMp3Info();
+                    
                     player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
+                    player.setPath(dataTable.getModel().getValueAt(currentSongIndex, 6).toString());
+                    player.printMp3Info();
+                    //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
                     //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
                     if(t.isAlive())
                     {                      
@@ -644,11 +726,83 @@ public class GUI extends JFrame{
                     //simply play previous song
                     //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
                     System.out.println("Current position: " + currentSongIndex);
-                    player.printMp3Info();
+                    
                     player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                    player.setPath(dataTable.getModel().getValueAt(currentSongIndex-=1, 6).toString());
+                    player.printMp3Info();
+                    //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                    if(t.isAlive())
+                    {                      
+                        t = new Thread(player,"test");
+                        t.start();
+                        player.setVolume(volumeLevel);
+                    }                    
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (UnsupportedTagException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidDataException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }        
+    }
+    class backButtonPlaylistListener implements ActionListener
+    {
+        @Override
+        public void actionPerformed(ActionEvent e) 
+        {
+            System.out.println(dataTablePlaylist.getRowCount());
+            int maxRows = dataTablePlaylist.getRowCount();
+            System.out.println(maxRows);
+            System.out.println(dataTablePlaylist.getSelectedRow());
+            //compare if top, if so then move to bottom, stop current music then play;
+            if(currentSongIndex == 0)
+            {
+                System.out.println("WRAPPING AROUND");
+                try 
+                {
+                    currentSongIndex = dataTablePlaylist.getRowCount()-1;
+                    
+                   
+                    player.stopPlay();
+                    player = null;
+                    player = new MP3Player();
+                    player.setPath(dataTablePlaylist.getModel().getValueAt(currentSongIndex, 6).toString());
+                    player.printMp3Info();
+                    //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
+                    //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                    if(t.isAlive())
+                    {                      
+                        t = new Thread(player,"test");
+                        t.start();
+                        player.setVolume(volumeLevel);
+                    }
+                    
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (UnsupportedTagException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidDataException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            else
+            {
+                try 
+                {
+                    //simply play previous song
+                    //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                    System.out.println("Current position: " + currentSongIndex);
+                    
+                    player.stopPlay();
+                   // player = null;
+                    //player = new MP3Player();
+                    player.setPath(dataTablePlaylist.getModel().getValueAt(currentSongIndex-=1, 6).toString());
+                    player.printMp3Info();
+                    //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
                     if(t.isAlive())
                     {                      
                         t = new Thread(player,"test");
@@ -679,11 +833,12 @@ public class GUI extends JFrame{
                 player.printMp3Info();
                 try {
                     player.stopPlay();
-                    player.printMp3Info();
-                    player.stopPlay();
+                    
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
+                    player.setPath(dataTable.getModel().getValueAt(currentSongIndex, 6).toString());
+                    player.printMp3Info();
+                    //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
                     //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
                     if(t.isAlive())
                     {                      
@@ -704,11 +859,77 @@ public class GUI extends JFrame{
                  try 
                 {
                     System.out.println("Current position: " + currentSongIndex);
-                    player.printMp3Info();
+                  
                     player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTable.getValueAt(currentSongIndex+=1, 6).toString());
+                    player.setPath(dataTable.getModel().getValueAt(currentSongIndex+=1, 6).toString());
+                    player.printMp3Info();
+                   // player.setPath(dataTable.getValueAt(currentSongIndex+=1, 6).toString());
+                    if(t.isAlive())
+                    {                      
+                        t = new Thread(player,"test");
+                        t.start();
+                        player.setVolume(volumeLevel);
+                    }
+                    
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (UnsupportedTagException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidDataException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+        }        
+    }
+    class forwardButtonPlaylistListener implements ActionListener
+    {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int maxRows = dataTablePlaylist.getRowCount();
+            System.out.println("Maxrows: " + maxRows);
+            System.out.println("Current Song Index: " + currentSongIndex);
+            if(currentSongIndex == maxRows-1)
+            {
+                System.out.println("WRAPPING AROUND");
+                currentSongIndex = 0;
+                player.printMp3Info();
+                try {
+                    player.stopPlay();
+                    player = null;
+                    player = new MP3Player();
+                    player.setPath(dataTablePlaylist.getModel().getValueAt(currentSongIndex, 6).toString());
+                    player.printMp3Info();
+                    //player.setPath(dataTablePlaylist.g)
+                    //player.setPath(dataTablePlaylist.getValueAt(currentSongIndex, 6).toString());
+                    //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
+                    if(t.isAlive())
+                    {                      
+                        t = new Thread(player,"test");
+                        t.start();
+                        player.setVolume(volumeLevel);
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (UnsupportedTagException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidDataException ex) {
+                    Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            else
+            {
+                 try 
+                {
+                    System.out.println("Current position: " + currentSongIndex);
+                    player.stopPlay();
+                    player = null;
+                    player = new MP3Player();
+                    player.setPath(dataTablePlaylist.getModel().getValueAt(currentSongIndex+=1, 6).toString());
+                    player.printMp3Info();
+                    //player.setPath(dataTablePlaylist.getValueAt(currentSongIndex+=1, 6).toString());
                     if(t.isAlive())
                     {                      
                         t = new Thread(player,"test");
@@ -1001,17 +1222,19 @@ public class GUI extends JFrame{
         @Override
         public void valueChanged(ListSelectionEvent e) 
         {
-            
+            currentSongIndex = dataTablePlaylist.getSelectedRow();
             currentSongIndex = dataTable.getSelectedRow();
+            System.out.println(currentSongIndex);
             //GET TAG INFORMATION TO PLAY SONG
             if(!e.getValueIsAdjusting())
             {
-                if (dataTable.getSelectedRow() > -1) 
+                if (currentSongIndex > -1) 
                 {
                     
                     try 
                     {
-                        player.setPath(dataTable.getValueAt(dataTable.getSelectedRow(), 6).toString());
+                        player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
+                        //player.setPath(dataTable.getValueAt(dataTable.getSelectedRow(), 6).toString());
                         player.printMp3Info();
                     } catch (IOException ex) {
                         Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -1039,7 +1262,8 @@ public class GUI extends JFrame{
                     
                     try 
                     {
-                        player.setPath(dataTablePlaylist.getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
+                        //player.setPath(dataTablePlaylist.getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
+                        player.setPath(dataTablePlaylist.getModel().getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
                         player.printMp3Info();
                     } catch (IOException ex) {
                         Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -1506,7 +1730,7 @@ public class GUI extends JFrame{
         dataTable.setFillsViewportHeight(true);
         dataTable.getSelectionModel().addListSelectionListener(new rowSelector());
         dataTable.setModel(model);
-        
+        dataTable.removeColumn(dataTable.getColumnModel().getColumn(6));
         splitPane.add(sp);
         splitPane.setDividerLocation(140);
         
@@ -1534,6 +1758,7 @@ public class GUI extends JFrame{
         dataTablePlaylist.setFillsViewportHeight(true);
         dataTablePlaylist.getSelectionModel().addListSelectionListener(new rowSelectorNewWindow());
         dataTablePlaylist.setModel(modelPlaylist);
+        dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(6));
         
         playlistframe.add(spPlaylist);
         //splitPane.add(sp);
