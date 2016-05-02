@@ -225,6 +225,8 @@ public class GUI extends JFrame{
         dataTablePlaylist.getSelectionModel().addListSelectionListener(new rowSelector());
         dataTablePlaylist.setModel(modelPlaylist);
         dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(6));
+        dataTable.setAutoCreateRowSorter(true);
+        dataTablePlaylist.setAutoCreateRowSorter(true);
         //this.add(sp);
         //this.add(sp);
         //this.add(list);
@@ -1733,7 +1735,7 @@ public class GUI extends JFrame{
         dataTable.removeColumn(dataTable.getColumnModel().getColumn(6));
         splitPane.add(sp);
         splitPane.setDividerLocation(140);
-        
+        dataTable.setAutoCreateRowSorter(true);
         setVisible(true);
         
     }
@@ -1759,7 +1761,7 @@ public class GUI extends JFrame{
         dataTablePlaylist.getSelectionModel().addListSelectionListener(new rowSelectorNewWindow());
         dataTablePlaylist.setModel(modelPlaylist);
         dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(6));
-        
+        dataTablePlaylist.setAutoCreateRowSorter(true);
         playlistframe.add(spPlaylist);
         //splitPane.add(sp);
         //splitPane.setDividerLocation(140);
