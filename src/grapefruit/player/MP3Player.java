@@ -13,8 +13,12 @@ import static grapefruit.player.GrapefruitPlayer.gui;
 import java.io.File;
 import java.io.IOException;
 import static java.nio.file.Files.delete;
+import java.sql.Timestamp;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -23,6 +27,8 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 
 /**
  *
@@ -48,9 +54,14 @@ public class MP3Player implements Runnable
     private String comment;
     private String genre;
     private String path;
+    private String hms;
     private int gain;
     private FloatControl volumeController;
-    
+    private File file;
+    private String timeElapsed;
+    private AudioFileFormat baseFileFormat;
+    private Map properties;
+    private Long duration,timeLeft,percDone;
     
     public MP3Player() throws IOException, UnsupportedTagException, InvalidDataException
     {
@@ -75,7 +86,7 @@ public class MP3Player implements Runnable
     {
         try 
         {
-            File file = new File(filename);
+            file = new File(filename);
             in= AudioSystem.getAudioInputStream(file);
             din = null;
             AudioFormat baseFormat = in.getFormat();
@@ -97,7 +108,7 @@ public class MP3Player implements Runnable
         }
     } 
 
-    private void rawplay(AudioFormat targetFormat, AudioInputStream din) throws IOException,                                                                                                LineUnavailableException
+    private void rawplay(AudioFormat targetFormat, AudioInputStream din) throws IOException,                                                                                                LineUnavailableException,                                                                                                 UnsupportedAudioFileException
     {
       data = new byte[4096];
       line = getLine(targetFormat); 
@@ -135,7 +146,9 @@ public class MP3Player implements Runnable
                 {
 			line.start();
 		}
-                line.write(data, 0, nBytesRead);
+                line.write(data, 0, nBytesRead);     
+                gui.redrawProgress(line.getMicrosecondPosition());
+                //timeElapsed = timePassed(line.getMicrosecondPosition());
                 volumeController.setValue((float) gain);
                     
                 }
@@ -237,7 +250,7 @@ public class MP3Player implements Runnable
     }
     public void setPath(String filePath) throws IOException, UnsupportedTagException, InvalidDataException
     {
-        
+        file = new File(filePath);
         path = filePath;
         mp3 = new Mp3File(path);
         id3v2Tag = mp3.getId3v2Tag();
@@ -338,4 +351,51 @@ public class MP3Player implements Runnable
     {
         return gain;
     }
-}
+    public String getTimeElapsed()
+    {
+        return timeElapsed;
+    }
+    public String getSongDuration() throws UnsupportedAudioFileException, IOException
+    {
+        //File file = new File("filename.mp3");
+        baseFileFormat = new MpegAudioFileReader().getAudioFileFormat(file);
+        properties = baseFileFormat.properties();
+        duration = (Long) properties.get("duration");
+        System.out.println("DURATION: " + duration);
+        hms = String.format("%02d:%02d:%02d", TimeUnit.MICROSECONDS.toHours(duration),
+            TimeUnit.MICROSECONDS.toMinutes(duration) % TimeUnit.HOURS.toMinutes(1),
+            TimeUnit.MICROSECONDS.toSeconds(duration) % TimeUnit.MINUTES.toSeconds(1));   
+        return hms;
+    }
+    public String timeLeft(Long microsec) throws UnsupportedAudioFileException, IOException
+    {
+        baseFileFormat = new MpegAudioFileReader().getAudioFileFormat(file);
+        properties = baseFileFormat.properties();
+        duration = (Long) properties.get("duration");
+        timeLeft = duration-microsec;
+        hms = String.format("%02d:%02d:%02d", TimeUnit.MICROSECONDS.toHours(timeLeft),
+            TimeUnit.MICROSECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1),
+            TimeUnit.MICROSECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1));   
+        return hms;
+    }
+    //gets the time that has passed since song started
+    public String timePassed(Long microsec)
+    {
+        hms = String.format("%02d:%02d:%02d", TimeUnit.MICROSECONDS.toHours(microsec),
+            TimeUnit.MICROSECONDS.toMinutes(microsec) % TimeUnit.HOURS.toMinutes(1),
+            TimeUnit.MICROSECONDS.toSeconds(microsec) % TimeUnit.MINUTES.toSeconds(1));  
+        return hms;
+    }
+    public int percentDone(Long microsec)
+    {
+        if(microsec != 0)
+        {
+            percDone = (100*(TimeUnit.MICROSECONDS.toSeconds(duration)-TimeUnit.MICROSECONDS.toSeconds(duration-microsec))/TimeUnit.MICROSECONDS.toSeconds(duration));
+            if(percDone == 100)
+                return 0;
+            else
+                return (int) (100*(TimeUnit.MICROSECONDS.toSeconds(duration)-TimeUnit.MICROSECONDS.toSeconds(duration-microsec))/TimeUnit.MICROSECONDS.toSeconds(duration));
+        }
+        return 0;
+    }
+    }

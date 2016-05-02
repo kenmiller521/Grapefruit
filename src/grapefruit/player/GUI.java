@@ -47,6 +47,7 @@ import javax.swing.event.ListSelectionListener;
 import java.sql.SQLException;
 import javax.activation.ActivationDataFlavor;
 import javax.activation.DataHandler;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -63,7 +64,9 @@ import javax.swing.tree.TreeSelectionModel;
  */
 public class GUI extends JFrame{
     JFrame frame,playlistframe;
-    JPanel playerButtonsPanel,playerButtonsPanelPlaylist;
+    JPanel playerButtonsPanel,playerButtonsPanelPlaylist,progressPanel;
+    JTextField timeElapsedTextField, timeLeftTextField;
+    JProgressBar timeProgressBar;
     JButton play, pause,stop,back,forward,playplaylist,pauseplaylist, stopplaylist, backplaylist, forwardplaylist;
     //MP3Player player;
     private Thread t;
@@ -284,6 +287,19 @@ public class GUI extends JFrame{
                            treeView, sp);
         splitPane.setDividerLocation(140);
         this.add(splitPane);
+        
+        progressPanel = new JPanel();
+        timeElapsedTextField = new JTextField("00:00:00");
+        timeElapsedTextField.setEditable(false);
+        timeLeftTextField = new JTextField("00:00:00");        
+        timeLeftTextField.setEditable(false);        
+        timeProgressBar = new JProgressBar();
+        timeProgressBar.setMinimum(0);
+        timeProgressBar.setMaximum(100);
+        progressPanel.add(timeElapsedTextField);
+        progressPanel.add(timeProgressBar);
+        progressPanel.add(timeLeftTextField);
+        this.add(progressPanel, BorderLayout.NORTH);
         //this.add(treeView, BorderLayout.WEST);
         
         setVisible(true);
@@ -1238,11 +1254,14 @@ public class GUI extends JFrame{
                         player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
                         //player.setPath(dataTable.getValueAt(dataTable.getSelectedRow(), 6).toString());
                         player.printMp3Info();
+                        System.out.println("Duration: " + player.getSongDuration());
                     } catch (IOException ex) {
                         Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
                     } catch (UnsupportedTagException ex) {
                         Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
                     } catch (InvalidDataException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (UnsupportedAudioFileException ex) {
                         Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
@@ -1267,11 +1286,14 @@ public class GUI extends JFrame{
                         //player.setPath(dataTablePlaylist.getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
                         player.setPath(dataTablePlaylist.getModel().getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
                         player.printMp3Info();
+                        System.out.println("Duration: " + player.getSongDuration());
                     } catch (IOException ex) {
                         Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
                     } catch (UnsupportedTagException ex) {
                         Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
                     } catch (InvalidDataException ex) {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (UnsupportedAudioFileException ex) {
                         Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
@@ -1769,5 +1791,12 @@ public class GUI extends JFrame{
         //setVisible(true);/
         
     }
-   
+    public void redrawProgress(Long microsec) throws UnsupportedAudioFileException, IOException
+    {
+        timeElapsedTextField.setText(player.timePassed(microsec));
+        timeLeftTextField.setText(player.timeLeft(microsec));
+        timeElapsedTextField.revalidate();
+        timeLeftTextField.revalidate();
+        timeProgressBar.setValue(player.percentDone(microsec));
+    }   
 }
