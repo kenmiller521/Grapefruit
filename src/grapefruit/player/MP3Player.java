@@ -36,6 +36,7 @@ import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
  */
 public class MP3Player implements Runnable
 {
+    
     private SourceDataLine line;
     private AudioInputStream din;
     private boolean temp;
@@ -392,7 +393,15 @@ public class MP3Player implements Runnable
         {
             percDone = (100*(TimeUnit.MICROSECONDS.toSeconds(duration)-TimeUnit.MICROSECONDS.toSeconds(duration-microsec))/TimeUnit.MICROSECONDS.toSeconds(duration));
             if(percDone == 100)
-                return 0;
+            {
+                if(gui.repeatIsOn())
+                {
+                    run();
+                    return 0;
+                }
+                else
+                    return 0;
+            }
             else
                 return (int) (100*(TimeUnit.MICROSECONDS.toSeconds(duration)-TimeUnit.MICROSECONDS.toSeconds(duration-microsec))/TimeUnit.MICROSECONDS.toSeconds(duration));
         }

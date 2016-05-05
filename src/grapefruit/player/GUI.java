@@ -45,6 +45,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.sql.SQLException;
+import java.util.concurrent.ThreadLocalRandom;
 import javax.activation.ActivationDataFlavor;
 import javax.activation.DataHandler;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -112,7 +113,9 @@ public class GUI extends JFrame{
     private TreePath[] paths;
     private BufferedReader br;
     private PrintWriter pw;
-    private boolean isNotInMainLibraryAndAdded;
+    private boolean isNotInMainLibraryAndAdded,shuffleOn = false,repeatOn = false;
+    private String[] recentlyPlayed;
+    private int recentlyPlayedCounter = 0;
     /**
      *
      * @throws IOException
@@ -124,6 +127,7 @@ public class GUI extends JFrame{
     public GUI() throws IOException, UnsupportedTagException, InvalidDataException, SQLException
     {
         super("My GUI");
+        recentlyPlayed = new String[10];
         paused = false;
         playlistframe = new JFrame();
         playlistframe.setSize(800,500);
@@ -524,8 +528,20 @@ public class GUI extends JFrame{
                         player.stopPlay();
                         player = null;
                         player = new MP3Player();
-                        player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
-                        player.printMp3Info();
+                        if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTable.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
+                       
+                        
                         //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
                         if(t.isAlive())
                         {                                     
@@ -557,8 +573,19 @@ public class GUI extends JFrame{
                     //player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(),6).toString());
-                    player.printMp3Info();
+                   if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTable.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
+                   
                     //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());                  
                     t = new Thread(player,"test");
                     t.start();
@@ -599,8 +626,19 @@ public class GUI extends JFrame{
                         player.stopPlay();
                         player = null;
                         player = new MP3Player();
-                        player.setPath(dataTablePlaylist.getModel().getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
-                        player.printMp3Info();
+                        if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTablePlaylist.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTablePlaylist.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTablePlaylist.getModel().getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
+                       // setVisible(true);
                         //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
                         if(t.isAlive())
                         {                                     
@@ -632,8 +670,19 @@ public class GUI extends JFrame{
                     //player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTablePlaylist.getModel().getValueAt(dataTablePlaylist.getSelectedRow(),6).toString());
-                    player.printMp3Info();
+                    if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTable.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
+                        //setVisible(true);
                     //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());                  
                     t = new Thread(player,"test");
                     t.start();
@@ -718,8 +767,18 @@ public class GUI extends JFrame{
                     player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTable.getModel().getValueAt(currentSongIndex, 6).toString());
-                    player.printMp3Info();
+                    if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTable.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        };
                     //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
                     //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
                     if(t.isAlive())
@@ -748,8 +807,18 @@ public class GUI extends JFrame{
                     player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTable.getModel().getValueAt(currentSongIndex-=1, 6).toString());
-                    player.printMp3Info();
+                    if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTable.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
                     //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
                     if(t.isAlive())
                     {                      
@@ -788,8 +857,18 @@ public class GUI extends JFrame{
                     player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTablePlaylist.getModel().getValueAt(currentSongIndex, 6).toString());
-                    player.printMp3Info();
+                    if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTablePlaylist.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTablePlaylist.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTablePlaylist.getModel().getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
                     //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
                     //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
                     if(t.isAlive())
@@ -818,8 +897,18 @@ public class GUI extends JFrame{
                     player.stopPlay();
                    // player = null;
                     //player = new MP3Player();
-                    player.setPath(dataTablePlaylist.getModel().getValueAt(currentSongIndex-=1, 6).toString());
-                    player.printMp3Info();
+                    if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTable.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
                     //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
                     if(t.isAlive())
                     {                      
@@ -854,8 +943,18 @@ public class GUI extends JFrame{
                     
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTable.getModel().getValueAt(currentSongIndex, 6).toString());
-                    player.printMp3Info();
+                    if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTable.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
                     //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
                     //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
                     if(t.isAlive())
@@ -881,8 +980,18 @@ public class GUI extends JFrame{
                     player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTable.getModel().getValueAt(currentSongIndex+=1, 6).toString());
-                    player.printMp3Info();
+                    if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTable.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTable.getModel().getValueAt(dataTable.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
                    // player.setPath(dataTable.getValueAt(currentSongIndex+=1, 6).toString());
                     if(t.isAlive())
                     {                      
@@ -918,8 +1027,18 @@ public class GUI extends JFrame{
                     player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTablePlaylist.getModel().getValueAt(currentSongIndex, 6).toString());
-                    player.printMp3Info();
+                    if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTablePlaylist.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTablePlaylist.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTablePlaylist.getModel().getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
                     //player.setPath(dataTablePlaylist.g)
                     //player.setPath(dataTablePlaylist.getValueAt(currentSongIndex, 6).toString());
                     //player.setPath(dataTable.getValueAt(currentSongIndex-=1, 6).toString());
@@ -945,8 +1064,18 @@ public class GUI extends JFrame{
                     player.stopPlay();
                     player = null;
                     player = new MP3Player();
-                    player.setPath(dataTablePlaylist.getModel().getValueAt(currentSongIndex+=1, 6).toString());
-                    player.printMp3Info();
+                    if(shuffleOn)
+                        {
+                            //ThreadLocalRandom.current().nextInt(0,dataTable.getModel().getRowCount());
+                            player.setPath(dataTablePlaylist.getModel().getValueAt(ThreadLocalRandom.current().nextInt(0,dataTablePlaylist.getModel().getRowCount()), 6).toString());
+                            player.printMp3Info();
+                        }
+                        else
+                        {
+                            player.setPath(dataTablePlaylist.getModel().getValueAt(dataTablePlaylist.getSelectedRow(), 6).toString());
+                            player.printMp3Info();
+                            updateSubMenu();
+                        }
                     //player.setPath(dataTablePlaylist.getValueAt(currentSongIndex+=1, 6).toString());
                     if(t.isAlive())
                     {                      
@@ -1120,55 +1249,6 @@ public class GUI extends JFrame{
         
         //ADD PLAYER MENU
         menu = new JMenu("Player");
-        menu.setMnemonic(KeyEvent.VK_P);
-        menu.getAccessibleContext().setAccessibleDescription(
-                "Basic Functions");
-        menuBar.add(menu);
-        //ADD MENU ITEMS BELOW
-        menuItem = new JMenuItem("Play",
-                                 KeyEvent.VK_O);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_1, ActionEvent.ALT_MASK));
-        menuItem.getAccessibleContext().setAccessibleDescription(
-                "Play the song");
-        menuItem.addActionListener(new playButtonListener());
-        
-        menu.add(menuItem);
-        
-        menuItem = new JMenuItem("Pause",
-                                 KeyEvent.VK_O);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_1, ActionEvent.ALT_MASK));
-        menuItem.getAccessibleContext().setAccessibleDescription(
-                "Exits the program");
-        menuItem.addActionListener(new pauseButtonListener());
-        menu.add(menuItem);
-        menuItem = new JMenuItem("Stop",
-                                 KeyEvent.VK_O);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_1, ActionEvent.ALT_MASK));
-        menuItem.getAccessibleContext().setAccessibleDescription(
-                "Exits the program");
-        menuItem.addActionListener(new stopButtonListener());
-        menu.add(menuItem);
-        
-        menu.addSeparator();
-        
-        menuItem = new JMenuItem("Skip to next",
-                                 KeyEvent.VK_O);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_1, ActionEvent.ALT_MASK));
-        menuItem.getAccessibleContext().setAccessibleDescription(
-                "Exits the program");
-        menuItem.addActionListener(new MenuDemo());
-        menu.add(menuItem);
-        menuItem = new JMenuItem("Skip to previous",
-                                 KeyEvent.VK_O);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_1, ActionEvent.ALT_MASK));
-        menuItem.getAccessibleContext().setAccessibleDescription(
-                "Exits the program");
-        menuItem.addActionListener(new MenuDemo());
         //Add a song menu item
         menuItem = new JMenuItem("Open song",
                                  KeyEvent.VK_O);
@@ -1207,8 +1287,112 @@ public class GUI extends JFrame{
                 KeyEvent.VK_2, ActionEvent.ALT_MASK));
         menuItem.getAccessibleContext().setAccessibleDescription(
                 "Creates a playlist");
-         menuItem.addActionListener(new createPlaylistButton());
-         menu.add(menuItem);
+        menuItem.addActionListener(new createPlaylistButton());
+        menu.add(menuItem);
+        
+        menuBar.add(menu);
+         
+        menu = new JMenu("Controls");
+        
+        menuItem = new JMenuItem("Play",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                "SPACE"));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Play the song");
+        menuItem.addActionListener(new playButtonListener());
+        
+        menu.add(menuItem);
+        menuItem = new JMenuItem("Next",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_RIGHT, ActionEvent.CTRL_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Skips to next song");
+        menuItem.addActionListener(new forwardButtonListener());
+        menu.add(menuItem);
+        
+         menuItem = new JMenuItem("Previous",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_LEFT, ActionEvent.CTRL_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new backButtonListener());
+        menu.add(menuItem);
+        submenu = new JMenu("Play Recent");
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_LEFT, ActionEvent.CTRL_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new backButtonListener());
+        
+        populateSubmenu();
+        
+        menu.add(submenu);
+        menuItem = new JMenuItem("Go To Current",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_L, ActionEvent.CTRL_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new backButtonListener());
+        menu.add(menuItem);
+        //ADD MENU ITEMS BELOW
+        menu.addSeparator();
+        menuItem = new JMenuItem("Increase Volume",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_I, ActionEvent.CTRL_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new increaseVolumeListener());
+        menu.add(menuItem);
+        menuItem = new JMenuItem("Decrease Volume",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_D, ActionEvent.CTRL_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new decreaseVolumeListener());
+        menu.add(menuItem);
+        menu.addSeparator();
+        menuItem = new JCheckBoxMenuItem("Shuffle");
+        menuItem.addActionListener(new shuffleListener());
+        menu.add(menuItem);
+        menuItem = new JCheckBoxMenuItem("Repeat");
+        menuItem.addActionListener(new repeatSongListener());
+        menu.add(menuItem);
+        /*
+        menuItem = new JMenuItem("Pause",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_1, ActionEvent.ALT_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new pauseButtonListener());
+        menu.add(menuItem);
+        menuItem = new JMenuItem("Stop",
+                                 KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_1, ActionEvent.ALT_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "Exits the program");
+        menuItem.addActionListener(new stopButtonListener());
+        menu.add(menuItem);*/
+        
+        
+        
+        
+         
+        
+        menuBar.add(menu);
+        
+       
+        
+        
+       
+        
         
         return menuBar;
     }
@@ -1223,6 +1407,56 @@ public class GUI extends JFrame{
         public void itemStateChanged(ItemEvent e) {
             System.out.println("TEST LISTENER");
           }
+        
+    }
+    public class shuffleListener implements ActionListener{
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            shuffleOn = !shuffleOn;
+            if(shuffleOn)
+                System.out.println("Shuffle on");
+            else
+                System.out.println("Shuffle off");
+        }
+        
+    }
+    public class repeatSongListener implements ActionListener{
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            repeatOn = !repeatOn;
+            if(repeatOn)
+                System.out.println("Repeat on");
+            else
+                System.out.println("Repeat off");
+        }
+        
+    }
+    public class increaseVolumeListener implements ActionListener{
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+                volumeLevel = volumeSlider.getValue();
+                volumeLevel = (int)(volumeLevel*1.05);
+                player.setVolume(volumeLevel);
+                volumeSlider.setValue(volumeLevel);
+            
+        }
+
+        
+    }
+    public class decreaseVolumeListener implements ActionListener{
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+                volumeLevel = volumeSlider.getValue();
+                volumeLevel = (int)(volumeLevel*0.95);
+                player.setVolume(volumeLevel);
+                volumeSlider.setValue(volumeLevel);
+            
+        }
+
         
     }
     public class exitMenuItem implements ActionListener{
@@ -1273,7 +1507,6 @@ public class GUI extends JFrame{
         @Override
         public void valueChanged(ListSelectionEvent e) 
         {
-            
             currentSongIndex = dataTablePlaylist.getSelectedRow();
             //GET TAG INFORMATION TO PLAY SONG
             if(!e.getValueIsAdjusting())
@@ -1798,5 +2031,94 @@ public class GUI extends JFrame{
         timeElapsedTextField.revalidate();
         timeLeftTextField.revalidate();
         timeProgressBar.setValue(player.percentDone(microsec));
-    }   
+    }  
+    public boolean repeatIsOn()
+    {
+        return repeatOn;
+    }
+    public void populateSubmenu()
+    {
+        submenu.removeAll();
+        for(int i = 0 ; i < recentlyPlayed.length;i++)
+        {
+            if(recentlyPlayed[i] != null)
+            {
+                menuItem = new JMenuItem(recentlyPlayed[i]);
+                menuItem.addActionListener(new submenuItemListener());
+                submenu.add(menuItem);
+            }
+        }
+    }
+    class submenuItemListener implements ActionListener{
+
+        @Override
+        public void actionPerformed(ActionEvent e) 
+        {     
+             if(player.isRunning())
+            {
+                if(t.isAlive()) 
+                {                    
+                    try 
+                    {
+                        
+                        player.stopPlay();
+                        player = null;
+                        player = new MP3Player();
+                        player.setPath(e.getActionCommand());
+                        player.printMp3Info();
+                        updateSubMenu();
+                        
+                        //player.setPath(dataTable.getValueAt(currentSongIndex, 6).toString());
+                        if(t.isAlive())
+                        {                                     
+                            t = new Thread(player,"test");
+                            t.start();
+                            player.setVolume(volumeLevel);
+                        }
+                    } 
+                    catch (IOException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } 
+                    catch (UnsupportedTagException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    } 
+                    catch (InvalidDataException ex) 
+                    {
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                          
+                }
+            }
+        }
+    }
+    
+    
+    public void printRecentlyPlayed()
+    {
+        for(int i = 0; i < recentlyPlayed.length;i++)
+               System.out.println(recentlyPlayed[i]);
+    }
+    public void updateSubMenu()
+    {
+        remove(menuBar);
+        submenu.removeAll();
+        menuBar.remove(submenu);
+        recentlyPlayed[recentlyPlayedCounter] = player.getPath();
+        recentlyPlayedCounter++;
+        if(recentlyPlayedCounter == 10)
+            recentlyPlayedCounter = 0;
+        printRecentlyPlayed();
+        populateSubmenu();
+        submenu.revalidate();
+        submenu.repaint();
+        menuBar.add(submenu);
+        menuBar.revalidate();
+        menuBar.repaint();
+        System.out.println(submenu.toString());
+        setJMenuBar(addMenuBar());
+        revalidate();
+        repaint();
+    }
 }
