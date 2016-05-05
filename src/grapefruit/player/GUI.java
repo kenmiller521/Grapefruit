@@ -27,6 +27,8 @@ import java.awt.dnd.DragSource;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.Closeable;
@@ -54,6 +56,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -85,7 +89,7 @@ public class GUI extends JFrame{
     //DefaultTableModel modelplaylist = new DefaultTableModel();
     private JMenuItem menuItemAdd,menuItemDelete, menuItemClose;
     private JMenu playlistSubmenu;
-    private JPopupMenu popupMenu,playlistPopupMenu;
+    private JPopupMenu popupMenu,playlistPopupMenu,headerPopupMenu;
     private JFileChooser chooser;
     private JTree tree;
     private JScrollPane treeView;
@@ -162,7 +166,37 @@ public class GUI extends JFrame{
         forward.addActionListener(new forwardButtonListener());
         //JList list = new JList();
         popupMenu = new JPopupMenu();
-       
+        headerPopupMenu = new JPopupMenu();
+        
+        JCheckBoxMenuItem albumMenu = new JCheckBoxMenuItem("Album");
+        JCheckBoxMenuItem artistMenu = new JCheckBoxMenuItem("Artist");
+        JCheckBoxMenuItem yearMenu = new JCheckBoxMenuItem("Year");
+        JCheckBoxMenuItem genreMenu = new JCheckBoxMenuItem("Genre");
+        JCheckBoxMenuItem commentMenu = new JCheckBoxMenuItem("Comment");
+   
+        albumMenu.addActionListener(new JCheckBoxTableListener()); 
+        artistMenu.addActionListener(new JCheckBoxTableListener()); 
+        yearMenu.addActionListener(new JCheckBoxTableListener()); 
+        genreMenu.addActionListener(new JCheckBoxTableListener()); 
+        commentMenu.addActionListener(new JCheckBoxTableListener()); 
+        
+        headerPopupMenu.add(albumMenu);
+        headerPopupMenu.add(artistMenu);
+        headerPopupMenu.add(yearMenu);
+        headerPopupMenu.add(genreMenu);
+        headerPopupMenu.add(commentMenu);
+          
+    
+     /*   final JTableHeader header;
+        header = dataTable.getTableHeader();
+        header.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent me){
+                if(SwingUtilities.isRightMouseButton(me)){
+                    headerPopupMenu.show(header,me.getX(),me.getY());
+                }
+            }
+        });
+       */ 
         menuItemAdd = new JMenuItem("Add New Song");
         menuItemDelete = new JMenuItem("Delete Song");
         menuItemClose = new JMenuItem("Cancel");
@@ -208,6 +242,7 @@ public class GUI extends JFrame{
         dataTable = new JTable(model);
     //   dataTable.addMouseListener(new TableMouseListener(dataTable));
         dataTable.setComponentPopupMenu(popupMenu);
+        dataTable.setComponentPopupMenu(headerPopupMenu);
         dataTable.setDragEnabled(true);
         dataTable.setDropMode(DropMode.INSERT_ROWS);
         dataTable.setTransferHandler(new TableRowTransferHandler(dataTable));
@@ -223,6 +258,7 @@ public class GUI extends JFrame{
         dataTablePlaylist = new JTable(modelPlaylist);
     //   dataTable.addMouseListener(new TableMouseListener(dataTable));
         dataTablePlaylist.setComponentPopupMenu(popupMenu);
+        dataTablePlaylist.setComponentPopupMenu(headerPopupMenu);
         dataTablePlaylist.setDragEnabled(true);
         dataTablePlaylist.setDropMode(DropMode.INSERT_ROWS);
         dataTablePlaylist.setTransferHandler(new TableRowPlaylistTransferHandler(dataTablePlaylist));
@@ -307,6 +343,61 @@ public class GUI extends JFrame{
         //this.add(treeView, BorderLayout.WEST);
         
         setVisible(true);
+       
+       /* 
+   dataTable.getTableHeader().addMouseListener(new MouseAdapter() {
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        int col = dataTable.columnAtPoint(e.getPoint());
+        String name = dataTable.getColumnName(col);
+        System.out.println("Column index selected " + col + " " + name);
+    }
+});
+       */
+        /*
+        final JTableHeader header = dataTable.getTableHeader();
+        header.addMouseListener(new MouseAdapter(){
+        public void mouseClicked(MouseEvent me){
+            if(SwingUtilities.isRightMouseButton(me)){
+                headerPopupMenu.show(header, me.getX(), me.getY());
+                System.out.println("Hey!");
+            }
+        }
+        });
+        
+        */
+    }
+    
+    class JCheckBoxTableListener implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent e){
+             JMenuItem menu = (JMenuItem)e.getSource();
+            JTableHeader header = dataTable.getTableHeader();
+            TableColumnModel tcm = dataTable.getColumnModel();
+       
+           
+            TableColumn tc = tcm.getColumn(2);
+
+            if("Artist" == tc.getHeaderValue()){
+                 System.out.println("You clicked Artist!");
+             }
+            if(e.getActionCommand() == "Artist"){
+                System.out.println("Toggled Artist");
+            }
+            else if(e.getActionCommand() == "Album"){
+                System.out.println("Toggled Album");
+            }
+            else if(e.getActionCommand() == "Year"){
+                System.out.println("Toggled Year");
+            }
+            else if(e.getActionCommand() == "Genre"){
+                System.out.println("Toggled Genre");
+            }
+            else if(e.getActionCommand() == "Comment"){
+                System.out.println("Toggled Comment");
+            }
+            
+        }
         
     }
     class OpenInNewWindow implements ActionListener{
@@ -1095,6 +1186,7 @@ public class GUI extends JFrame{
             
         }        
     }
+
     public JMenuBar addMenuBar()
     {
         //Create the menu bar.
@@ -1980,6 +2072,7 @@ public class GUI extends JFrame{
         model = new DefaultTableModel(data, columnNames);
         dataTable = new JTable(model);
         dataTable.setComponentPopupMenu(popupMenu);
+        dataTable.setComponentPopupMenu(headerPopupMenu);
         dataTable.setDragEnabled(true);
         dataTable.setDropMode(DropMode.INSERT_ROWS);
         dataTable.setTransferHandler(new TableRowTransferHandler(dataTable));
