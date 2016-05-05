@@ -47,12 +47,15 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.activation.ActivationDataFlavor;
 import javax.activation.DataHandler;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -63,6 +66,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+        
 /**
  *
  * @author ken_m
@@ -105,8 +109,9 @@ public class GUI extends JFrame{
     private JFrame createPlaylistframe;
     private DefaultMutableTreeNode playlistNode;
     private DefaultMutableTreeNode playlists;
-    private FileReader fileReader;
-    private BufferedReader bufferedReader;
+    private FileReader fileReader, fileReaderColumns;
+    private FileWriter fileWriterColumns;
+    private BufferedReader bufferedReader,bufferedReaderColumns;
     private String line; //The line in the text file to be read
     private DefaultTreeModel treeModel;
     private DefaultMutableTreeNode top;
@@ -120,6 +125,14 @@ public class GUI extends JFrame{
     private boolean isNotInMainLibraryAndAdded,shuffleOn = false,repeatOn = false;
     private String[] recentlyPlayed;
     private int recentlyPlayedCounter = 0;
+    private List<TableColumn> allColumns;
+    private TableColumnModel tcm;
+    private TableColumn column;
+    private JCheckBoxMenuItem albumMenu;
+    private JCheckBoxMenuItem artistMenu;
+    private JCheckBoxMenuItem yearMenu;
+    private JCheckBoxMenuItem genreMenu;
+    private JCheckBoxMenuItem commentMenu;
     /**
      *
      * @throws IOException
@@ -168,23 +181,25 @@ public class GUI extends JFrame{
         popupMenu = new JPopupMenu();
         headerPopupMenu = new JPopupMenu();
         
-        JCheckBoxMenuItem albumMenu = new JCheckBoxMenuItem("Album");
-        JCheckBoxMenuItem artistMenu = new JCheckBoxMenuItem("Artist");
-        JCheckBoxMenuItem yearMenu = new JCheckBoxMenuItem("Year");
-        JCheckBoxMenuItem genreMenu = new JCheckBoxMenuItem("Genre");
-        JCheckBoxMenuItem commentMenu = new JCheckBoxMenuItem("Comment");
-   
+        albumMenu = new JCheckBoxMenuItem("Album");
+        artistMenu = new JCheckBoxMenuItem("Artist");
+        yearMenu = new JCheckBoxMenuItem("Year");
+        genreMenu = new JCheckBoxMenuItem("Genre");
+        commentMenu = new JCheckBoxMenuItem("Comment");
+        
+        albumMenu.setSelected(true);
+        artistMenu.setSelected(true);
+        yearMenu.setSelected(true);
+        genreMenu.setSelected(true);
+        commentMenu.setSelected(true);
+        
         albumMenu.addActionListener(new JCheckBoxTableListener()); 
         artistMenu.addActionListener(new JCheckBoxTableListener()); 
         yearMenu.addActionListener(new JCheckBoxTableListener()); 
         genreMenu.addActionListener(new JCheckBoxTableListener()); 
         commentMenu.addActionListener(new JCheckBoxTableListener()); 
         
-        headerPopupMenu.add(albumMenu);
-        headerPopupMenu.add(artistMenu);
-        headerPopupMenu.add(yearMenu);
-        headerPopupMenu.add(genreMenu);
-        headerPopupMenu.add(commentMenu);
+       
           
     
      /*   final JTableHeader header;
@@ -208,10 +223,13 @@ public class GUI extends JFrame{
         popupMenu.add(menuItemAdd);
         popupMenu.add(menuItemDelete);
         popupMenu.add(menuItemClose);
-        popupMenu.addSeparator();
+        
         playlistSubmenu = new JMenu("Add to Playlist");
+        fileWriterColumns = new FileWriter("columnNames.txt", true);
         fileReader = new FileReader("playlistnames.txt");
+        fileReaderColumns = new FileReader("columnnames.txt");
         bufferedReader = new BufferedReader(fileReader);
+        bufferedReaderColumns = new BufferedReader(fileReaderColumns);
         while((line = bufferedReader.readLine()) != null)
         {            
              menuItem = new JMenuItem(line);
@@ -219,7 +237,13 @@ public class GUI extends JFrame{
              playlistSubmenu.add(menuItem);
         }
         popupMenu.add(playlistSubmenu);
-        
+        popupMenu.addSeparator();
+        popupMenu.add(albumMenu);
+        popupMenu.add(artistMenu);
+        popupMenu.add(yearMenu);
+        popupMenu.add(genreMenu);
+        popupMenu.add(commentMenu);
+        headerPopupMenu = popupMenu;
        /* Object[][] data = {
             {player.getTitle(),player.getAlbum(),player.getArtist(),player.getYear(),player.getComment()},
             {"TEST","test","test","test","test"},
@@ -242,7 +266,7 @@ public class GUI extends JFrame{
         dataTable = new JTable(model);
     //   dataTable.addMouseListener(new TableMouseListener(dataTable));
         dataTable.setComponentPopupMenu(popupMenu);
-        dataTable.setComponentPopupMenu(headerPopupMenu);
+        //dataTable.setComponentPopupMenu(headerPopupMenu);
         dataTable.setDragEnabled(true);
         dataTable.setDropMode(DropMode.INSERT_ROWS);
         dataTable.setTransferHandler(new TableRowTransferHandler(dataTable));
@@ -257,8 +281,8 @@ public class GUI extends JFrame{
        // dataTable = new JTable(data,columnNames);
         dataTablePlaylist = new JTable(modelPlaylist);
     //   dataTable.addMouseListener(new TableMouseListener(dataTable));
-        dataTablePlaylist.setComponentPopupMenu(popupMenu);
         dataTablePlaylist.setComponentPopupMenu(headerPopupMenu);
+       // dataTablePlaylist.setComponentPopupMenu(headerPopupMenu);
         dataTablePlaylist.setDragEnabled(true);
         dataTablePlaylist.setDropMode(DropMode.INSERT_ROWS);
         dataTablePlaylist.setTransferHandler(new TableRowPlaylistTransferHandler(dataTablePlaylist));
@@ -341,7 +365,7 @@ public class GUI extends JFrame{
         progressPanel.add(timeLeftTextField);
         this.add(progressPanel, BorderLayout.NORTH);
         //this.add(treeView, BorderLayout.WEST);
-        
+        removeColumnsFromTable();
         setVisible(true);
        
        /* 
@@ -370,33 +394,91 @@ public class GUI extends JFrame{
     
     class JCheckBoxTableListener implements ActionListener{
         @Override
-        public void actionPerformed(ActionEvent e){
+        public void actionPerformed(ActionEvent e)
+        {
              JMenuItem menu = (JMenuItem)e.getSource();
-            JTableHeader header = dataTable.getTableHeader();
-            TableColumnModel tcm = dataTable.getColumnModel();
-       
-           
-            TableColumn tc = tcm.getColumn(2);
-
-            if("Artist" == tc.getHeaderValue()){
-                 System.out.println("You clicked Artist!");
-             }
+            JTableHeader header = dataTablePlaylist.getTableHeader();
+            TableColumnModel tcm = dataTablePlaylist.getColumnModel();
+           JCheckBoxMenuItem temp = (JCheckBoxMenuItem)e.getSource();
+            //TableColumn tc = tcm.getColumn(2);
+            /*
+            //Go through columns
+            for(int i = 0; i < dataTablePlaylist.getColumnModel().getColumnCount(); i++)
+            {
+                //If it matches with what was toggled
+                if(dataTablePlaylist.getColumnModel().== e.getActionCommand())
+                {
+                    //dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(i));
+                    dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(i));
+                    break;
+                }
+            }
+                    
+                    */
+           if(!temp.isSelected())
+           {
+                    for(int i = 0; i < dataTablePlaylist.getColumnModel().getColumnCount(); i++)
+                    {
+                        if(dataTablePlaylist.getColumnModel().getColumn(i).getHeaderValue().toString() == e.getActionCommand())
+                            dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(i));
+                    }
+           }
+           else
+           { 
+               for(int i = 0; i < dataTablePlaylist.getModel().getColumnCount(); i++)
+               {
+                   if(dataTablePlaylist.getModel().getColumnName(i) == e.getActionCommand())
+                   {
+                       
+                       column = new TableColumn(i);
+                       dataTablePlaylist.addColumn(column);
+                       break;
+                   }
+               }
+               /*
+               System.out.println(dataTablePlaylist.getModel().getColumnCount());
+               System.out.println(dataTablePlaylist.getModel().getColumnName(0));
+               System.out.println(dataTablePlaylist.getModel().getColumnName(1));
+               System.out.println(dataTablePlaylist.getModel().getColumnName(2));
+               System.out.println(dataTablePlaylist.getModel().getColumnName(3));
+               System.out.println(dataTablePlaylist.getModel().getColumnName(4));
+               System.out.println(dataTablePlaylist.getModel().getColumnName(5));
+               System.out.println(dataTablePlaylist.getModel().getColumnName(6));         
+               */
+           }
+                    
+                /*    
+            //if("Artist" == tc.getHeaderValue()){
+            //     System.out.println("You clicked Artist!");
+                 //dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(6));
+             //}
             if(e.getActionCommand() == "Artist"){
                 System.out.println("Toggled Artist");
+                
+                dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(2));
+                dataTable.removeColumn(dataTable.getColumnModel().getColumn(2));
             }
             else if(e.getActionCommand() == "Album"){
                 System.out.println("Toggled Album");
+                dataTablePlaylist.getModel().getColumnName(volumeLevel);
+                dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(1));
+                dataTable.removeColumn(dataTable.getColumnModel().getColumn(1));
             }
             else if(e.getActionCommand() == "Year"){
                 System.out.println("Toggled Year");
+                dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(3));
+                dataTable.removeColumn(dataTable.getColumnModel().getColumn(3));
             }
             else if(e.getActionCommand() == "Genre"){
                 System.out.println("Toggled Genre");
+               dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(4));
+                dataTable.removeColumn(dataTable.getColumnModel().getColumn(4));
             }
             else if(e.getActionCommand() == "Comment"){
                 System.out.println("Toggled Comment");
-            }
-            
+                dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(5));
+                dataTable.removeColumn(dataTable.getColumnModel().getColumn(5));
+            }*/
         }
         
     }
@@ -418,6 +500,36 @@ public class GUI extends JFrame{
             playlistframe.setVisible(true);
         }
     } 
+    public void removeColumnsFromTable() throws IOException
+    {
+        while((line = bufferedReaderColumns.readLine()) != null)
+        {            
+            for(int i = 0; i < dataTablePlaylist.getColumnModel().getColumnCount(); i++)
+            {
+                //System.out.println("Line: " + line.toString());
+                //System.out.println(dataTablePlaylist.getColumnModel().getColumn(i).getHeaderValue().toString());
+                //If the column name is in the file
+                if(dataTablePlaylist.getColumnModel().getColumn(i).getHeaderValue().toString().equals(line))
+                {
+                                       
+                    //Then remove it from the table
+                    dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(i));
+                    dataTable.removeColumn(dataTable.getColumnModel().getColumn(i));
+                    if(line.equals("Album"))
+                        albumMenu.setSelected(false);
+                    if(line.equals("Artist"))
+                        artistMenu.setSelected(false);
+                    if(line.equals("Year")) 
+                        yearMenu.setSelected(false);
+                    if(line.equals("Genre"))
+                        genreMenu.setSelected(false);
+                    if(line.equals("Comment"))
+                        commentMenu.setSelected(false);
+                        
+                }
+            }
+        }
+    }
     class DeletePlaylist implements ActionListener
     {
         private TreePath[] paths;
@@ -2109,6 +2221,7 @@ public class GUI extends JFrame{
         dataTablePlaylist.getSelectionModel().addListSelectionListener(new rowSelectorNewWindow());
         dataTablePlaylist.setModel(modelPlaylist);
         dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(6));
+        dataTablePlaylist.removeColumn(dataTablePlaylist.getColumnModel().getColumn(2));
         dataTablePlaylist.setAutoCreateRowSorter(true);
         playlistframe.add(spPlaylist);
         //splitPane.add(sp);
